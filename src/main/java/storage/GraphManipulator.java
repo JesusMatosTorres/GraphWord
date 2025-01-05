@@ -24,11 +24,8 @@ public class GraphManipulator implements GraphManipulation, AutoCloseable {
                         org.neo4j.driver.Values.parameters("graphName", graphName)
             );
             session.run(
-                    """
-                    CALL gds.graph.project($graphName, ['Word'], 
-                    {CONNECTED: {type: 'CONNECTED', orientation: 'UNDIRECTED'}}
-                    )
-                    """,
+                    "CALL gds.graph.project($graphName, ['Word'], " +
+                            "{CONNECTED: {type: 'CONNECTED', orientation: 'UNDIRECTED'}})",
                     Values.parameters("graphName", graphName)
             );
 
