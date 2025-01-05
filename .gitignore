@@ -36,3 +36,7 @@ replay_pid*
 *.zip
 *.tar.gz
 *.rar
+
+# Ignore Datalake folder and its contents
+/Datalake/
+Datalake/**
