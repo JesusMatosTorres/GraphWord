@@ -1,89 +1,38 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
+# Ignorar IntelliJ IDEA
+.idea/
 *.iml
-*.ipr
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Build output
+/target/
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+# Compiled class file
+*.class
 
-### VS Code ###
-.vscode/
-
-### Mac OS ###
-.DS_Store
-
-# Ignore sensitive configuration files
-config.properties
-src/main/resources/config.properties
-
-# Ignore Datalake folder and its contents
-/Datalake/
-Datalake/**
-
-# Ignore logs and temporary files
+# Logs
 *.log
 *.tmp
 *.bak
 
-# Ignore testing output
-test-output/
-*.xml
+# Sensitive configuration files
+config.properties
+src/main/resources/config.properties
 
-# Ignore virtual environments (if any)
+# Virtual machine crash logs
+hs_err_pid*
+replay_pid*
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+
+# Virtual environments
 .venv/
 .env/
 
-# IntelliJ IDEA
-.idea/
-
-# Build output
-/target/
-# Compiled class file
-*.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# Package files
 *.jar
 *.war
-*.nar
-*.ear
 *.zip
 *.tar.gz
 *.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
