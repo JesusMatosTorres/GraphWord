@@ -9,6 +9,6 @@ public class GraphAnalyzerTest {
     void testAnalyzeGraph() {
         GraphAnalyzer analyzer = new GraphAnalyzer();
         boolean result = analyzer.analyzeGraph("testGraph");
-        assertTrue(result, "El análisis del grafo debe ser exitoso.");
+        assertTrue(result, "The graph analysis must be successful.");
     }
 }
