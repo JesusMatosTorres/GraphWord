@@ -9,6 +9,6 @@ public class AppConfigTest {
     void testLoadConfiguration() {
         AppConfig config = new AppConfig();
         String value = config.getConfigValue("testKey");
-        assertNotNull(value, "El valor de configuración no debe ser nulo.");
+        assertNotNull(value, "The configuration value must not be null.");
     }
 }
