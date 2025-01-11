@@ -1,1 +1,2 @@
 # GraphWord
+Workflow activation test
