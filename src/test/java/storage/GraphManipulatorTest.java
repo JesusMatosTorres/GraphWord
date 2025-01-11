@@ -9,6 +9,6 @@ public class GraphManipulatorTest {
     void testManipulateGraph() {
         GraphManipulator manipulator = new GraphManipulator();
         String updatedGraph = manipulator.manipulateGraph("testGraph");
-        assertNotNull(updatedGraph, "El grafo manipulado no debe ser nulo.");
+        assertNotNull(updatedGraph, "The manipulated graph must not be null.");
     }
 }
