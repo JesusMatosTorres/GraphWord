@@ -9,6 +9,6 @@ public class GraphControllerTest {
     void testHandleRequest() {
         GraphController controller = new GraphController();
         String response = controller.handleRequest("testRequest");
-        assertNotNull(response, "La respuesta no debe ser nula.");
+        assertNotNull(response, "The answer should not be null.");
     }
 }
