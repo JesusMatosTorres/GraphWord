@@ -9,6 +9,6 @@ public class ConfigLoaderTest {
     void testLoadConfigFile() {
         ConfigLoader loader = new ConfigLoader();
         String config = loader.loadConfigFile("testConfigPath");
-        assertNotNull(config, "El archivo de configuración no debe ser nulo.");
+        assertNotNull(config, "The configuration file must not be null.");
     }
 }
