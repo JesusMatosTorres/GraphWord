@@ -10,7 +10,7 @@ public class GraphProcessorTest {
     void testProcessGraphValidInput() {
         GraphProcessor processor = new GraphProcessor();
         String result = processor.processGraph("validGraphInput");
-        assertEquals("expectedResult", result, "El resultado no es el esperado.");
+        assertEquals("expectedResult", result, "The result is not what was expected.");
     }
 
     @Test
@@ -18,6 +18,6 @@ public class GraphProcessorTest {
         GraphProcessor processor = new GraphProcessor();
         assertThrows(IllegalArgumentException.class, () -> {
             processor.processGraph(null);
-        }, "Debe lanzar una excepción si la entrada es nula.");
+        }, "Should throw an exception if the input is null.");
     }
 }
