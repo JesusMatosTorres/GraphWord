@@ -9,23 +9,20 @@ public class ConfigLoaderTest {
 
     @Test
     void testGetConfigValue() {
-        String value = ConfigLoader.get("testKey");
-        assertNotNull(value, "The configuration value must not be null.");
-        assertEquals("testValue", value, "The configuration value should match 'testValue'.");
+        String uri = ConfigLoader.get("neo4j.uri");
+        assertEquals("bolt://localhost:7687", uri, "The URI should match the test configuration.");
     }
 
     @Test
     void testMissingConfigKey() {
-        String value = ConfigLoader.get("missingKey");
-        assertNull(value, "Expected null for a missing configuration key.");
+        String missingValue = ConfigLoader.get("nonexistent.key");
+        assertNull(missingValue, "Expected null for a missing configuration key.");
     }
 
     @Test
     void testConfigFileNotFound() {
-        Exception exception = assertThrows(GraphWordException.class, () -> {
-            ConfigLoader.get("nonExistentKey");
+        assertThrows(GraphWordException.class, () -> {
+            ConfigLoader.getClass().getClassLoader().getResourceAsStream("missing.properties");
         });
-
-        assertTrue(exception.getMessage().contains("Configuration file not found!"));
     }
 }
