@@ -19,7 +19,7 @@ public class GraphAnalyzerTest {
         String password = System.getenv("NEO4J_PASSWORD");
 
         if (uri == null || user == null || password == null) {
-            throw new IllegalStateException("Las variables de entorno NEO4J_URI, NEO4J_USER y NEO4J_PASSWORD deben estar configuradas.");
+            throw new IllegalStateException("NEO4J_URI, NEO4J_USER y NEO4J_PASSWORD should be configured.");
         }
 
         graphAnalyzer = new GraphAnalyzer(uri, user, password);
