@@ -14,6 +14,11 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:  
+      NEO4J_URI: ${{ secrets.NEO4J_URI }}
+      NEO4J_USER: ${{ secrets.NEO4J_USER }}
+      NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,8 +29,28 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Print environment
-        run: env
+      - name: Start Neo4j Container with GDS
+        run: |
+          docker run -d \
+          --name neo4j \
+          -e NEO4J_AUTH=none \
+          -e NEO4JLABS_PLUGINS='["graph-data-science"]' \
+          -p 7687:7687 \
+          neo4j:latest
+
+      - name: Wait for Neo4j to be ready
+        run: |
+          for i in {1..10}; do
+            if nc -z localhost 7687; then
+              echo "Neo4j is ready!";
+              break;
+            fi;
+            echo "Waiting for Neo4j...";
+            sleep 5;
+          done
+
+      - name: Print environment (debugging purposes, sensitive info will not be displayed)
+        run: env | grep NEO4J
 
       - name: Install dependencies and run tests
         run: |
