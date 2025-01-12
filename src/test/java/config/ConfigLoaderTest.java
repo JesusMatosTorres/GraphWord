@@ -22,7 +22,8 @@ public class ConfigLoaderTest {
     @Test
     void testConfigFileNotFound() {
         assertThrows(GraphWordException.class, () -> {
-            ConfigLoader.getClass().getClassLoader().getResourceAsStream("missing.properties");
-        });
-    }
+            ConfigLoader.get("missingKey");
+    });
+}
+
 }
