@@ -22,6 +22,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Print environment
+        run: env
+
       - name: Install dependencies and run tests
         run: |
           mvn clean verify
