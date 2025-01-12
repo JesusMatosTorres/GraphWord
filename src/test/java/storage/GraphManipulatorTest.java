@@ -26,7 +26,7 @@ public class GraphManipulatorTest {
 
     @Test
     void testInsertWords() {
-        Set<String> words = Set.of("word1", "word2");
+        Set<String> words = Set.of("word1", "word2", "word3");
         assertDoesNotThrow(() -> graphManipulator.insertWords(words), "Inserting words should not throw an exception.");
     }
 
