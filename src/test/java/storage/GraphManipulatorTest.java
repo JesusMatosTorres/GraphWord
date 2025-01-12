@@ -18,7 +18,7 @@ public class GraphManipulatorTest {
         String password = System.getenv("NEO4J_PASSWORD");
 
         if (uri == null || user == null || password == null) {
-            throw new IllegalStateException("NEO4J_URI, NEO4J_USER y NEO4J_PASSWORD should be configured.");
+            throw new IllegalStateException("NEO4J_URI, NEO4J_USER y NEO4J_PASSWORD deben estar configuradas.");
         }
 
         graphManipulator = new GraphManipulator(uri, user, password);
@@ -41,16 +41,8 @@ public class GraphManipulatorTest {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            // Verificar si el grafo existe
-            boolean graphExists = graphManipulator.graphExists(graphName);
-
-            // Si el grafo no existe, crearlo
-            if (!graphExists) {
-                graphManipulator.projectGraph(graphName, "nodes", "edges");
-            }
-
-            // Intentar eliminar el grafo
-            graphManipulator.dropGraph(graphName);
+            // Asegurarse de que el grafo se proyecta correctamente
+            graphManipulator.ensureGraphProjection(graphName);
         }, "Ensuring graph projection should not throw an exception.");
     }
 }
