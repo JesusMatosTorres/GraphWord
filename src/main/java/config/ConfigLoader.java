@@ -6,10 +6,10 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class ConfigLoader {
-    private static final Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
-    static {
-        try (InputStream input = ConfigLoader.class.getClassLoader().getResourceAsStream("config.properties")) {
+    public ConfigLoader() {
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
             if (input == null) {
                 throw new GraphWordException("Configuration file not found!");
             }
@@ -19,8 +19,10 @@ public class ConfigLoader {
         }
     }
 
-    public static String get(String key) {
+    public String get(String key) {
         return properties.getProperty(key);
     }
 }
+
+
 
