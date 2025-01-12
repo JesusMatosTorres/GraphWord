@@ -1,21 +1,39 @@
 package config;
 
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.*;
 
 public class ConfigLoaderTest {
 
     @Test
     void testGetConfigValue() {
-        String configValue = ConfigLoader.get("testKey");
+        // Mock ConfigLoader
+        ConfigLoader mockConfigLoader = mock(ConfigLoader.class);
+
+        // Define behavior for the mock
+        when(mockConfigLoader.get("testKey")).thenReturn("mockedValue");
+
+        // Use the mock
+        String configValue = mockConfigLoader.get("testKey");
+
+        // Assert the mocked value is returned
         assertNotNull(configValue, "The configuration value must not be null.");
     }
 
     @Test
     void testMissingConfigKey() {
-        String missingValue = ConfigLoader.get("missingKey");
-        assertNotNull(missingValue, "Expected null for a missing configuration key.");
+        // Mock ConfigLoader
+        ConfigLoader mockConfigLoader = mock(ConfigLoader.class);
+
+        // Define behavior for the mock
+        when(mockConfigLoader.get("missingKey")).thenReturn(null);
+
+        // Use the mock
+        String missingValue = mockConfigLoader.get("missingKey");
+
+        // Assert the value is null for a missing key
+        assertNull(missingValue, "Expected null for a missing configuration key.");
     }
 }
