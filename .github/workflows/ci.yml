@@ -1,12 +1,14 @@
-name: Java CI with Code Coverage
+name: CI Pipeline
 
 on:
   push:
     branches:
+      - master
       - develop
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-and-test:
