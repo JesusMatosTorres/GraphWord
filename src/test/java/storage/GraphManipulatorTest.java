@@ -3,7 +3,6 @@ package storage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Value;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
@@ -30,7 +29,7 @@ public class GraphManipulatorTest {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), any(Value.class))).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mock(Result.class));
 
             graphManipulator.ensureGraphProjection(graphName);
 
@@ -63,11 +62,11 @@ public class GraphManipulatorTest {
         Set<String> newWords = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), any(Value.class))).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mock(Result.class));
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), any(Value.class));
+            verify(mockSession, times(1)).run(anyString(), anyMap());
         });
     }
 
@@ -76,7 +75,7 @@ public class GraphManipulatorTest {
         Set<String> words = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), any(Value.class))).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mock(Result.class));
 
             graphManipulator.connectWords(words);
 
