@@ -84,8 +84,9 @@ public class GraphManipulatorTest {
                    MERGE (w2:Word {name: $word2})
                    MERGE (w1)-[:CONNECTED]-(w2)
                    """),
-                anyMap()
+                argThat(map -> map.containsKey("word1") && map.containsKey("word2") && !map.get("word1").equals(map.get("word2")))
             );
+
         });
     }
 
