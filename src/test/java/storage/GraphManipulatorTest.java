@@ -28,7 +28,7 @@ public class GraphManipulatorTest {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), anyMap())).thenReturn(null);
+            when(mockSession.run(anyString(), Mockito.<TransactionConfig>any())).thenReturn(null);
 
             graphManipulator.ensureGraphProjection(graphName);
 
@@ -74,7 +74,7 @@ public class GraphManipulatorTest {
         Set<String> words = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), anyMap())).thenReturn(null);
+            when(mockSession.run(anyString(), Mockito.<TransactionConfig>any())).thenReturn(null);
 
             graphManipulator.connectWords(words);
 
