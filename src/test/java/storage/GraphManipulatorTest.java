@@ -28,8 +28,11 @@ public class GraphManipulatorTest {
 
     // Método de ayuda para configurar el mock de run()
     private void setupRunMock() {
-        // Usamos una lambda en lugar de Answer
-        when(mockSession.run(anyString(), any())).thenAnswer(i -> mock(Result.class));
+        // Usamos el método específico de Session
+        doReturn(mock(Result.class)).when(mockSession).run(
+            anyString(), 
+            ArgumentMatchers.<Map<String, Object>>any()
+        );
     }
 
     @Test
@@ -76,7 +79,7 @@ public class GraphManipulatorTest {
 
             verify(mockSession, times(1)).run(
                 anyString(),
-                any()
+                ArgumentMatchers.<Map<String, Object>>any()
             );
         });
     }
