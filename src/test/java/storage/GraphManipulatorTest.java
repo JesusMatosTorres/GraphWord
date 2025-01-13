@@ -7,18 +7,17 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 import java.util.Set;
-import java.sql.Driver;
 import java.util.Map;
 
 public class GraphManipulatorTest {
 
     private GraphManipulator graphManipulator;
-    private Driver mockDriver;
+    private org.neo4j.driver.Driver mockDriver;
     private Session mockSession;
 
     @BeforeEach
     void setUp() {
-        mockDriver = mock(Driver.class);
+        mockDriver = mock(org.neo4j.driver.Driver.class);
         mockSession = mock(Session.class);
 
         when(mockDriver.session()).thenReturn(mockSession);
@@ -30,7 +29,7 @@ public class GraphManipulatorTest {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), any(Map.class))).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), any(Record.class))).thenReturn(mock(Result.class));
 
             graphManipulator.ensureGraphProjection(graphName);
 
