@@ -32,7 +32,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             List<String> path = graphAnalyzer.findShortestPath("node1", "node2");
             verify(mockSession, times(1)).run(anyString(), anyMap());
@@ -44,7 +44,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             List<List<String>> paths = graphAnalyzer.findAllPaths("node1", "node2");
             verify(mockSession, times(1)).run(anyString(), anyMap());
@@ -56,7 +56,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             int maxDistance = graphAnalyzer.findMaximumDistance();
             verify(mockSession, times(1)).run(anyString());
@@ -68,7 +68,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             List<List<String>> communities = graphAnalyzer.findCommunities();
             verify(mockSession, times(1)).run(anyString());
@@ -80,7 +80,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             List<String> isolatedNodes = graphAnalyzer.findIsolatedNodes();
             verify(mockSession, times(1)).run(anyString());
@@ -92,7 +92,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             List<String> highConnectivityNodes = graphAnalyzer.findHighConnectivityNodes(3);
             verify(mockSession, times(1)).run(anyString(), anyMap());
@@ -104,7 +104,7 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
             when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(Record.class));
+            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Solución
 
             List<String> nodes = graphAnalyzer.findNodesByDegree(3);
             verify(mockSession, times(1)).run(anyString(), anyMap());
