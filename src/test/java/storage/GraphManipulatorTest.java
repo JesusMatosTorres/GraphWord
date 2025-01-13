@@ -3,6 +3,7 @@ package storage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
+import org.mockito.Mockito;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -86,7 +87,6 @@ public class GraphManipulatorTest {
                    """),
                 argThat(map -> map.containsKey("word1") && map.containsKey("word2") && !map.get("word1").equals(map.get("word2")))
             );
-
         });
     }
 
