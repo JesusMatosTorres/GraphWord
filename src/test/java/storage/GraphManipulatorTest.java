@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 
 import java.util.Set;
+import java.util.Map;
 
 public class GraphManipulatorTest {
 
@@ -61,11 +62,11 @@ public class GraphManipulatorTest {
         Set<String> newWords = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.writeTransaction(any())).thenReturn(null);
+            when(mockSession.run(anyString(), any(Map.class))).thenReturn(mock(Result.class));
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).writeTransaction(any());
+            verify(mockSession, times(1)).run(anyString(), any(Map.class));
         });
     }
 
