@@ -15,6 +15,10 @@ public class GraphManipulator implements GraphManipulation, AutoCloseable {
         this.driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
     }
 
+    public GraphManipulator(Driver driver) { //// Additional builder for Driver injection
+        this.driver = driver;
+    }
+
     @Override
     public void ensureGraphProjection(String graphName) {
         try (Session session = driver.session()) {
