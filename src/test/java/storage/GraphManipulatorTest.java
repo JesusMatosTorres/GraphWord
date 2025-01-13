@@ -3,11 +3,10 @@ package storage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
-import org.mockito.Mockito;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
+
+import java.util.Set;
 
 public class GraphManipulatorTest {
 
@@ -29,7 +28,7 @@ public class GraphManipulatorTest {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), Mockito.<TransactionConfig>any())).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), any(TransactionConfig.class))).thenReturn(mock(Result.class));
 
             graphManipulator.ensureGraphProjection(graphName);
 
@@ -75,7 +74,7 @@ public class GraphManipulatorTest {
         Set<String> words = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), Mockito.<TransactionConfig>any())).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), any(TransactionConfig.class))).thenReturn(mock(Result.class));
 
             graphManipulator.connectWords(words);
 
