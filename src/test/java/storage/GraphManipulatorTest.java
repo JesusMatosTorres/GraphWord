@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
+import org.neo4j.driver.QueryRunner;
 
 import java.util.Set;
 import java.util.Map;
@@ -13,14 +14,14 @@ public class GraphManipulatorTest {
 
     private GraphManipulator graphManipulator;
     private org.neo4j.driver.Driver mockDriver;
-    private Session mockSession;
+    private QueryRunner mockSession;
 
     @BeforeEach
     void setUp() {
         mockDriver = mock(org.neo4j.driver.Driver.class);
-        mockSession = mock(org.neo4j.driver.Session.class);
+        mockSession = mock(QueryRunner.class);
 
-        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockDriver.session()).thenReturn((Session)mockSession);
         graphManipulator = new GraphManipulator(mockDriver);
     }
 
@@ -30,8 +31,8 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             doReturn(mock(Result.class))
-                .when((org.neo4j.driver.Session)mockSession)
-                .run(anyString(), any(Map.class));
+                .when(mockSession)
+                .run(anyString(), any(TransactionConfig.class));
 
             graphManipulator.ensureGraphProjection(graphName);
 
@@ -65,12 +66,12 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             doReturn(mock(Result.class))
-                .when((org.neo4j.driver.Session)mockSession)
-                .run(anyString(), any(Map.class));
+                .when(mockSession)
+                .run(anyString(), any(TransactionConfig.class));
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), any(Map.class));
+            verify(mockSession, times(1)).run(anyString(), any(TransactionConfig.class));
         });
     }
 
@@ -80,8 +81,8 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             doReturn(mock(Result.class))
-                .when((org.neo4j.driver.Session)mockSession)
-                .run(anyString(), any(Map.class));
+                .when(mockSession)
+                .run(anyString(), any(TransactionConfig.class));
 
             graphManipulator.connectWords(words);
 
