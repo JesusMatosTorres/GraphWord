@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
-import org.mockito.ArgumentMatchers;
+import org.mockito.stubbing.Answer;
 
 import java.util.Set;
 import java.util.Map;
@@ -25,15 +25,23 @@ public class GraphManipulatorTest {
         graphManipulator = new GraphManipulator(mockDriver);
     }
 
-    // Helper method to verify calls to the correct run() overload
-    private void verifyRunWithParams(String query, Value params) {
-        verify(mockSession).run(eq(query), argThat(value -> value.asMap().equals(params.asMap())));
-    }
-
-    // Helper method to configure mocks for the correct run() overload
+    // Helper method to configure mocks for the run(String, Value) overload
     private void setupRunMock() {
         Result mockResult = mock(Result.class);
-        when(mockSession.run(any(String.class), any(Value.class))).thenReturn(mockResult);
+
+        // Use doAnswer to handle the specific overload of run(String, Value)
+        doAnswer((Answer<Result>) invocation -> {
+            Object[] args = invocation.getArguments();
+            if (args.length == 2 && args[0] instanceof String && args[1] instanceof Value) {
+                return mockResult;
+            }
+            throw new IllegalArgumentException("Ambiguous method call for run");
+        }).when(mockSession).run(any(String.class), any(Value.class));
+    }
+
+    // Helper method to verify calls to the correct run() overload
+    private void verifyRunWithParams(String query, Value params) {
+        verify(mockSession).run(eq(query), eq(params));
     }
 
     @Test
