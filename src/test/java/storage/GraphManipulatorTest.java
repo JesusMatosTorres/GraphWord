@@ -35,6 +35,7 @@ public class GraphManipulatorTest {
         Result mockResult = mock(Result.class);
         // Configuramos el comportamiento específico para cada tipo de parámetro
         when(mockSession.run(anyString(), any(Value.class))).thenReturn(mockResult);
+        when(mockSession.run(anyString(), any(TransactionConfig.class))).thenReturn(mockResult);
     }
 
     @Test
