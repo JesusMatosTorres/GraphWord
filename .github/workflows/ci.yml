@@ -14,11 +14,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    env:  
-      NEO4J_URI: ${{ secrets.NEO4J_URI }}
-      NEO4J_USER: ${{ secrets.NEO4J_NAME }}
-      NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,43 +24,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Start Neo4j
-        run: |
-          docker run -d \
-          --name neo4j \
-          -e NEO4J_AUTH="${{ secrets.NEO4J_NAME }}:${{ secrets.NEO4J_PASSWORD }}" \
-          -e NEO4JLABS_PLUGINS='["graph-data-science"]' \
-          -p 7687:7687 \
-          neo4j:latest
-
-      - name: Wait for Neo4j
-        run: |
-          for i in {1..10}; do
-            if nc -z localhost 7687; then
-              echo "Neo4j is ready!";
-              break;
-            fi;
-            echo "Waiting for Neo4j...";
-            sleep 5;
-          done
-
-      - name: Print environment variables
-        run: printenv | grep NEO4J
-
-      - name: Check Docker logs
-        run: docker logs neo4j
-
-      - name: Debug environment variables
-        run: |
-          echo "NEO4J_URI=${{ secrets.NEO4J_URI }}"
-          echo "NEO4J_USER=${{ secrets.NEO4J_NAME }}"  
-          echo "NEO4J_PASSWORD=<hidden>"
-
       - name: Install dependencies and run tests
-        env:
-          NEO4J_URI: ${{ secrets.NEO4J_URI }}
-          NEO4J_USER: ${{ secrets.NEO4J_NAME }}
-          NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
         run: mvn clean verify -X
 
       - name: Generate Jacoco report
