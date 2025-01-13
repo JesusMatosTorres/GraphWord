@@ -25,20 +25,16 @@ public class GraphManipulatorTest {
         graphManipulator = new GraphManipulator(mockDriver);
     }
 
-    // Método de ayuda para verificar la llamada a run()
+    // Helper method to verify calls to the correct run() overload
     private void verifyRunWithParams(String query, Value params) {
-        verify(mockSession).run(eq(query), eq(params));
+        verify(mockSession).run(eq(query), argThat(value -> value.asMap().equals(params.asMap())));
     }
 
-    // Método de ayuda para configurar el mock de run()
+    // Helper method to configure mocks for the correct run() overload
     private void setupRunMock() {
-    Result mockResult = mock(Result.class);
-    // Configuramos el comportamiento específico para cada tipo de parámetro
-    when(mockSession.run(anyString(), any(Value.class))).thenReturn(mockResult);
-    // Aseguramos que el método run() con TransactionConfig no se llame
-    when(mockSession.run(anyString(), any(TransactionConfig.class))).thenThrow(new IllegalArgumentException("Ambiguous call"));
+        Result mockResult = mock(Result.class);
+        when(mockSession.run(anyString(), ArgumentMatchers.any(Value.class))).thenReturn(mockResult);
     }
-
 
     @Test
     void testEnsureGraphProjection() {
@@ -82,7 +78,7 @@ public class GraphManipulatorTest {
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), any(Value.class));
+            verify(mockSession, times(1)).run(anyString(), ArgumentMatchers.any(Value.class));
         });
     }
 
