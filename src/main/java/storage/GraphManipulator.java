@@ -109,7 +109,7 @@ public class GraphManipulator implements GraphManipulation, AutoCloseable {
     }
 
     // Auxiliary method to check the difference of a letter
-    private boolean isOneLetterDifference(String word1, String word2) {
+    protected boolean isOneLetterDifference(String word1, String word2) {
         if (word1.length() != word2.length()) return false;
         int diffCount = 0;
         for (int i = 0; i < word1.length(); i++) {
