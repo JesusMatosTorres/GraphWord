@@ -33,7 +33,7 @@ public class GraphManipulatorTest {
     // Helper method to configure mocks for the correct run() overload
     private void setupRunMock() {
         Result mockResult = mock(Result.class);
-        when(mockSession.run(anyString(), ArgumentMatchers.any(Value.class))).thenReturn(mockResult);
+        when(mockSession.run(any(String.class), any(Value.class))).thenReturn(mockResult);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class GraphManipulatorTest {
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), ArgumentMatchers.any(Value.class));
+            verify(mockSession, times(1)).run(any(String.class), any(Value.class));
         });
     }
 
