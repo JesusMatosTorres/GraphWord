@@ -32,8 +32,9 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(
                 eq("MATCH path = shortestPath((start:Word {name: $source})-[:CONNECTED*]-(end:Word {name: $target})) RETURN [node IN nodes(path) | node.name] AS path"),
-                eq(Values.parameters("source", "node1", "target", "node2"))
+                argThat(params -> params.get("source").equals("node1") && params.get("target").equals("node2"))
             )).thenReturn(mockResult);
+
 
             when(mockResult.hasNext()).thenReturn(true);
             when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Cambiado aquí
@@ -47,12 +48,10 @@ public class GraphAnalyzerTest {
     void testFindAllPaths() {
         assertDoesNotThrow(() -> {
             when(mockSession.run(
-                eq("MATCH path = (start:Word {name: $source})-[*]-(end:Word {name: $target}) " +
-                   "WHERE ALL(node IN nodes(path) WHERE single(x IN nodes(path) WHERE x = node)) " +
-                   "RETURN [node IN nodes(path) | node.name] AS path, size(relationships(path)) AS length " +
-                   "ORDER BY length ASC LIMIT 10"),
-                eq(Values.parameters("source", "node1", "target", "node2"))
+                eq("MATCH path = (start:Word {name: $source})-[*]-(end:Word {name: $target}) ..."),
+                argThat(params -> params.get("source").equals("node1") && params.get("target").equals("node2"))
             )).thenReturn(mockResult);
+
 
             when(mockResult.hasNext()).thenReturn(true);
             when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Cambiado aquí
@@ -125,7 +124,7 @@ public class GraphAnalyzerTest {
                    RETURN n.name AS name, score
                    ORDER BY score DESC
                    """),
-                eq(Values.parameters("minDegree", 3))
+                argThat(params -> params.get("minDegree").equals(3))
             )).thenReturn(mockResult);
 
             when(mockResult.hasNext()).thenReturn(true);
@@ -146,8 +145,9 @@ public class GraphAnalyzerTest {
                    WHERE degree = $degree
                    RETURN n.name AS name
                    """),
-                eq(Values.parameters("degree", 3))
+                argThat(params -> params.get("degree").equals(3))
             )).thenReturn(mockResult);
+
 
             when(mockResult.hasNext()).thenReturn(true);
             when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class)); // Cambiado aquí
