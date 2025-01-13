@@ -13,7 +13,7 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
         this.driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
     }
 
-    public GraphAnalyzer(Driver driver) { //// Additional builder for Driver injection
+    public GraphAnalyzer(Driver driver) { // Constructor adicional para inyección de Driver
         this.driver = driver;
     }
 
@@ -40,7 +40,6 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
     public List<List<String>> findAllPaths(String source, String target) {
         List<List<String>> allPaths = new ArrayList<>();
         try (Session session = driver.session()) {
-            // Ejecutar la consulta Cypher
             var result = session.run(
                     "MATCH path = (start:Word {name: $source})-[*]-(end:Word {name: $target}) " +
                             "WHERE ALL(node IN nodes(path) WHERE single(x IN nodes(path) WHERE x = node)) " +
@@ -50,9 +49,8 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
                     Values.parameters("source", source, "target", target)
             );
 
-            // Procesar los resultados
             while (result.hasNext()) {
-                var record = result.next();
+                org.neo4j.driver.Record record = result.next(); // Uso explícito de Record
                 List<String> path = record.get("path").asList(Value::asString);
                 allPaths.add(path);
             }
@@ -73,7 +71,8 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
             );
 
             if (result.hasNext()) {
-                return result.next().get("maxDistance").asInt();
+                org.neo4j.driver.Record record = result.next(); // Uso explícito de Record
+                return record.get("maxDistance").asInt();
             }
         } catch (Exception e) {
             System.err.println("Error in findMaximumDistance: " + e.getMessage());
@@ -81,8 +80,7 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
         return -1;
     }
 
-
-    //terminada
+    // terminada
     @Override
     public List<List<String>> findCommunities() {
         List<List<String>> communities = new ArrayList<>();
@@ -96,7 +94,7 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
             );
 
             while (result.hasNext()) {
-                var record = result.next();
+                org.neo4j.driver.Record record = result.next(); // Uso explícito de Record
                 communities.add(record.get("members").asList(Value::asString));
             }
         } catch (Exception e) {
@@ -104,7 +102,6 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
         }
         return communities;
     }
-
 
     // terminada
     @Override
@@ -114,7 +111,8 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
             var result = session.run(
                     "MATCH (w:Word) WHERE NOT (w)-[]-() RETURN w.name AS name");
             while (result.hasNext()) {
-                isolatedNodes.add(result.next().get("name").asString());
+                org.neo4j.driver.Record record = result.next(); // Uso explícito de Record
+                isolatedNodes.add(record.get("name").asString());
             }
         } catch (Exception e) {
             System.err.println("Error in findIsolatedNodes: " + e.getMessage());
@@ -126,7 +124,6 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
     public List<String> findHighConnectivityNodes(int minDegree) {
         List<String> highConnectivityNodes = new ArrayList<>();
         try (Session session = driver.session()) {
-            // Ejecutar la consulta para obtener nodos con grado mayor o igual a minDegree
             var result = session.run(
                     """
                     CALL gds.degree.stream('myGraph')
@@ -139,9 +136,8 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
                     Values.parameters("minDegree", minDegree)
             );
 
-            // Recopilar los nombres de los nodos
             while (result.hasNext()) {
-                var record = result.next();
+                org.neo4j.driver.Record record = result.next(); // Uso explícito de Record
                 highConnectivityNodes.add(record.get("name").asString());
             }
         } catch (Exception e) {
@@ -150,8 +146,6 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
         return highConnectivityNodes;
     }
 
-
-    // terminada
     @Override
     public List<String> findNodesByDegree(int degree) {
         List<String> nodes = new ArrayList<>();
@@ -167,7 +161,7 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
             );
 
             while (result.hasNext()) {
-                var record = result.next();
+                org.neo4j.driver.Record record = result.next(); // Uso explícito de Record
                 nodes.add(record.get("name").asString());
             }
         } catch (Exception e) {
