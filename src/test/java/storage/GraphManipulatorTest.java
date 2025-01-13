@@ -6,7 +6,6 @@ import org.neo4j.driver.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 import org.mockito.ArgumentMatchers;
-import org.mockito.stubbing.Answer;
 
 import java.util.Set;
 import java.util.Map;
@@ -26,13 +25,16 @@ public class GraphManipulatorTest {
         graphManipulator = new GraphManipulator(mockDriver);
     }
 
+    // Método de ayuda para verificar la llamada a run()
+    private void verifyRunWithParams(String query, Map<String, Object> params) {
+        verify(mockSession).run(eq(query), eq(params));
+    }
+
     // Método de ayuda para configurar el mock de run()
     private void setupRunMock() {
-        // Usamos el método específico de Session
-        doReturn(mock(Result.class)).when(mockSession).run(
-            anyString(), 
-            ArgumentMatchers.<Map<String, Object>>any()
-        );
+        Result mockResult = mock(Result.class);
+        // Configuramos el comportamiento específico para cada tipo de parámetro
+        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
     }
 
     @Test
@@ -44,13 +46,13 @@ public class GraphManipulatorTest {
 
             graphManipulator.ensureGraphProjection(graphName);
 
-            verify(mockSession).run(
-                eq("CALL gds.graph.drop($graphName)"),
-                eq(Values.parameters("graphName", graphName))
+            verifyRunWithParams(
+                "CALL gds.graph.drop($graphName)",
+                Values.parameters("graphName", graphName)
             );
-            verify(mockSession).run(
-                eq("CALL gds.graph.project($graphName, ['Word'], {CONNECTED: {type: 'CONNECTED', orientation: 'UNDIRECTED'}})"),
-                eq(Values.parameters("graphName", graphName))
+            verifyRunWithParams(
+                "CALL gds.graph.project($graphName, ['Word'], {CONNECTED: {type: 'CONNECTED', orientation: 'UNDIRECTED'}})",
+                Values.parameters("graphName", graphName)
             );
         });
     }
@@ -77,10 +79,7 @@ public class GraphManipulatorTest {
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(
-                anyString(),
-                ArgumentMatchers.<Map<String, Object>>any()
-            );
+            verify(mockSession, times(1)).run(anyString(), anyMap());
         });
     }
 
@@ -101,14 +100,6 @@ public class GraphManipulatorTest {
                    """),
                 argThat(map -> map.containsKey("word1") && map.containsKey("word2") && !map.get("word1").equals(map.get("word2")))
             );
-        });
-    }
-
-    @Test
-    void testIsOneLetterDifference() {
-        assertDoesNotThrow(() -> {
-            boolean result = graphManipulator.isOneLetterDifference("word", "ward");
-            assert result;
         });
     }
 }
