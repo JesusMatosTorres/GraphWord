@@ -2,9 +2,7 @@ package storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.neo4j.driver.*;
-
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -15,16 +13,13 @@ public class GraphManipulatorTest {
     private GraphManipulator graphManipulator;
     private Driver mockDriver;
     private Session mockSession;
-    private Transaction mockTransaction;
 
     @BeforeEach
     void setUp() {
         mockDriver = mock(Driver.class);
         mockSession = mock(Session.class);
-        mockTransaction = mock(Transaction.class);
 
         when(mockDriver.session()).thenReturn(mockSession);
-        when(mockSession.beginTransaction()).thenReturn(mockTransaction);
         graphManipulator = new GraphManipulator(mockDriver);
     }
 
@@ -34,8 +29,17 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString(), anyMap())).thenReturn(null);
+
             graphManipulator.ensureGraphProjection(graphName);
-            verify(mockSession, times(2)).run(anyString(), anyMap());
+
+            verify(mockSession).run(
+                eq("CALL gds.graph.drop($graphName)"),
+                eq(Values.parameters("graphName", graphName))
+            );
+            verify(mockSession).run(
+                eq("CALL gds.graph.project($graphName, ['Word'], {CONNECTED: {type: 'CONNECTED', orientation: 'UNDIRECTED'}})"),
+                eq(Values.parameters("graphName", graphName))
+            );
         });
     }
 
@@ -45,7 +49,9 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             when(mockSession.writeTransaction(any())).thenReturn(null);
+
             graphManipulator.insertWords(words);
+
             verify(mockSession, times(1)).writeTransaction(any());
         });
     }
@@ -56,7 +62,9 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString())).thenReturn(mock(Result.class));
+
             graphManipulator.connectWithExistingWords(newWords);
+
             verify(mockSession, times(1)).run(anyString());
         });
     }
@@ -67,8 +75,17 @@ public class GraphManipulatorTest {
 
         assertDoesNotThrow(() -> {
             when(mockSession.run(anyString(), anyMap())).thenReturn(null);
+
             graphManipulator.connectWords(words);
-            verify(mockSession, atLeastOnce()).run(anyString(), anyMap());
+
+            verify(mockSession, atLeastOnce()).run(
+                eq("""
+                   MERGE (w1:Word {name: $word1})
+                   MERGE (w2:Word {name: $word2})
+                   MERGE (w1)-[:CONNECTED]-(w2)
+                   """),
+                anyMap()
+            );
         });
     }
 
