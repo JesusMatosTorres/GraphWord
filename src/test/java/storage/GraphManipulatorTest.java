@@ -26,7 +26,7 @@ public class GraphManipulatorTest {
     }
 
     // Método de ayuda para verificar la llamada a run()
-    private void verifyRunWithParams(String query, Map<String, Object> params) {
+    private void verifyRunWithParams(String query, Value params) {
         verify(mockSession).run(eq(query), eq(params));
     }
 
@@ -34,7 +34,7 @@ public class GraphManipulatorTest {
     private void setupRunMock() {
         Result mockResult = mock(Result.class);
         // Configuramos el comportamiento específico para cada tipo de parámetro
-        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+        when(mockSession.run(anyString(), any(Value.class))).thenReturn(mockResult);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class GraphManipulatorTest {
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), anyMap());
+            verify(mockSession, times(1)).run(anyString(), any(Value.class));
         });
     }
 
@@ -98,7 +98,12 @@ public class GraphManipulatorTest {
                    MERGE (w2:Word {name: $word2})
                    MERGE (w1)-[:CONNECTED]-(w2)
                    """),
-                argThat(map -> map.containsKey("word1") && map.containsKey("word2") && !map.get("word1").equals(map.get("word2")))
+                argThat(value -> {
+                    Map<String, Object> params = value.asMap();
+                    return params.containsKey("word1") && 
+                           params.containsKey("word2") && 
+                           !params.get("word1").equals(params.get("word2"));
+                })
             );
         });
     }
