@@ -61,11 +61,11 @@ public class GraphManipulatorTest {
         Set<String> newWords = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), any(TransactionConfig.class))).thenReturn(mock(Result.class));
+            when(mockSession.run(anyString(), any(Value.class))).thenReturn(mock(Result.class));
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), any(TransactionConfig.class));
+            verify(mockSession, times(1)).run(anyString(), any(Value.class));
         });
     }
 
