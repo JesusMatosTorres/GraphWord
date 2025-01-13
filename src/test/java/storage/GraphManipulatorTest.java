@@ -5,45 +5,68 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class GraphManipulatorTest {
 
-    private GraphManipulator mockGraphManipulator;
+    private GraphManipulator graphManipulator;
 
     @BeforeEach
     void setUp() {
-        mockGraphManipulator = mock(GraphManipulator.class);
+        graphManipulator = mock(GraphManipulator.class);
     }
 
     @Test
     void testInsertWords() {
         Set<String> words = Set.of("word1", "word2", "word3");
 
-        doNothing().when(mockGraphManipulator).insertWords(words);
+        doNothing().when(graphManipulator).insertWords(words);
 
-        assertDoesNotThrow(() -> mockGraphManipulator.insertWords(words),
-                "Inserting words should not throw an exception.");
+        assertDoesNotThrow(() -> graphManipulator.insertWords(words));
+        verify(graphManipulator, times(1)).insertWords(words);
     }
 
     @Test
     void testConnectWords() {
         Set<String> words = Set.of("word1", "word2", "word3");
 
-        doNothing().when(mockGraphManipulator).connectWords(words);
+        doNothing().when(graphManipulator).connectWords(words);
 
-        assertDoesNotThrow(() -> mockGraphManipulator.connectWords(words),
-                "Connecting words should not throw an exception.");
+        assertDoesNotThrow(() -> graphManipulator.connectWords(words));
+        verify(graphManipulator, times(1)).connectWords(words);
     }
 
     @Test
-    void testEnsureGraphProjection() {
+    void testEnsureGraphProjectionSuccess() {
         String graphName = "testGraph";
 
-        doNothing().when(mockGraphManipulator).ensureGraphProjection(graphName);
+        doNothing().when(graphManipulator).ensureGraphProjection(graphName);
 
-        assertDoesNotThrow(() -> mockGraphManipulator.ensureGraphProjection(graphName),
-                "Ensuring graph projection should not throw an exception.");
+        assertDoesNotThrow(() -> graphManipulator.ensureGraphProjection(graphName));
+        verify(graphManipulator, times(1)).ensureGraphProjection(graphName);
+    }
+
+    @Test
+    void testEnsureGraphProjectionError() {
+        String graphName = "testGraph";
+
+        doThrow(new RuntimeException("Error")).when(graphManipulator).ensureGraphProjection(graphName);
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            graphManipulator.ensureGraphProjection(graphName);
+        });
+
+        assertEquals("Error", exception.getMessage());
+    }
+
+    @Test
+    void testConnectWithExistingWords() {
+        Set<String> words = Set.of("word1", "word2");
+
+        doNothing().when(graphManipulator).connectWithExistingWords(words);
+
+        assertDoesNotThrow(() -> graphManipulator.connectWithExistingWords(words));
+        verify(graphManipulator, times(1)).connectWithExistingWords(words);
     }
 }
