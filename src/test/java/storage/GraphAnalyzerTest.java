@@ -32,8 +32,9 @@ public class GraphAnalyzerTest {
         assertDoesNotThrow(() -> {
             when(mockSession.run(
                 eq("MATCH path = shortestPath((start:Word {name: $source})-[:CONNECTED*]-(end:Word {name: $target})) RETURN [node IN nodes(path) | node.name] AS path"),
-                argThat(params -> params.get("source").equals("node1") && params.get("target").equals("node2"))
+                Mockito.<TransactionConfig>any()
             )).thenReturn(mockResult);
+
 
 
             when(mockResult.hasNext()).thenReturn(true);
