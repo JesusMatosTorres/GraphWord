@@ -18,7 +18,7 @@ public class GraphManipulatorTest {
     @BeforeEach
     void setUp() {
         mockDriver = mock(org.neo4j.driver.Driver.class);
-        mockSession = mock(Session.class);
+        mockSession = mock(org.neo4j.driver.Session.class);
 
         when(mockDriver.session()).thenReturn(mockSession);
         graphManipulator = new GraphManipulator(mockDriver);
@@ -29,7 +29,9 @@ public class GraphManipulatorTest {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), anyMap())).thenReturn(mock(Result.class));
+            doReturn(mock(Result.class))
+                .when((org.neo4j.driver.Session)mockSession)
+                .run(anyString(), any(Map.class));
 
             graphManipulator.ensureGraphProjection(graphName);
 
@@ -62,11 +64,13 @@ public class GraphManipulatorTest {
         Set<String> newWords = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), anyMap())).thenReturn(mock(Result.class));
+            doReturn(mock(Result.class))
+                .when((org.neo4j.driver.Session)mockSession)
+                .run(anyString(), any(Map.class));
 
             graphManipulator.connectWithExistingWords(newWords);
 
-            verify(mockSession, times(1)).run(anyString(), anyMap());
+            verify(mockSession, times(1)).run(anyString(), any(Map.class));
         });
     }
 
@@ -75,7 +79,9 @@ public class GraphManipulatorTest {
         Set<String> words = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(anyString(), anyMap())).thenReturn(mock(Result.class));
+            doReturn(mock(Result.class))
+                .when((org.neo4j.driver.Session)mockSession)
+                .run(anyString(), any(Map.class));
 
             graphManipulator.connectWords(words);
 
