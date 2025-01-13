@@ -6,6 +6,7 @@ import org.neo4j.driver.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
 import org.mockito.ArgumentMatchers;
+import org.mockito.stubbing.Answer;
 
 import java.util.Set;
 import java.util.Map;
@@ -27,11 +28,8 @@ public class GraphManipulatorTest {
 
     // Método de ayuda para configurar el mock de run()
     private void setupRunMock() {
-        Answer<Result> answer = invocation -> {
-            return mock(Result.class);
-        };
-        
-        doAnswer(answer).when(mockSession).run(anyString(), any(Map.class));
+        // Usamos una lambda en lugar de Answer
+        when(mockSession.run(anyString(), any())).thenAnswer(i -> mock(Result.class));
     }
 
     @Test
@@ -78,7 +76,7 @@ public class GraphManipulatorTest {
 
             verify(mockSession, times(1)).run(
                 anyString(),
-                any(Map.class)
+                any()
             );
         });
     }
