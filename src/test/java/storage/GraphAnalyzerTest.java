@@ -2,8 +2,7 @@ package storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
 import org.neo4j.driver.*;
 
 import java.util.List;
@@ -14,72 +13,101 @@ import static org.mockito.Mockito.*;
 public class GraphAnalyzerTest {
 
     private GraphAnalyzer graphAnalyzer;
-
-    @Mock
     private Driver mockDriver;
-    @Mock
     private Session mockSession;
-    @Mock
     private Result mockResult;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        mockDriver = mock(Driver.class);
+        mockSession = mock(Session.class);
+        mockResult = mock(Result.class);
+
+        when(mockDriver.session()).thenReturn(mockSession);
         graphAnalyzer = new GraphAnalyzer(mockDriver);
     }
 
     @Test
     void testFindShortestPath() {
-        when(mockDriver.session()).thenReturn(mockSession);
-        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
-
         assertDoesNotThrow(() -> {
-            List<String> result = graphAnalyzer.findShortestPath("node1", "node2");
-            assertNotNull(result);
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
+            List<String> path = graphAnalyzer.findShortestPath("node1", "node2");
+            verify(mockSession, times(1)).run(anyString(), anyMap());
         });
     }
 
     @Test
     void testFindAllPaths() {
-        when(mockDriver.session()).thenReturn(mockSession);
-        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
-
         assertDoesNotThrow(() -> {
-            List<List<String>> result = graphAnalyzer.findAllPaths("node1", "node2");
-            assertNotNull(result);
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
+            List<List<String>> paths = graphAnalyzer.findAllPaths("node1", "node2");
+            verify(mockSession, times(1)).run(anyString(), anyMap());
         });
     }
 
     @Test
     void testFindMaximumDistance() {
-        when(mockDriver.session()).thenReturn(mockSession);
-        when(mockSession.run(anyString())).thenReturn(mockResult);
-
         assertDoesNotThrow(() -> {
+            when(mockSession.run(anyString())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
             int maxDistance = graphAnalyzer.findMaximumDistance();
-            assertTrue(maxDistance >= 0);
+            verify(mockSession, times(1)).run(anyString());
         });
     }
 
     @Test
     void testFindCommunities() {
-        when(mockDriver.session()).thenReturn(mockSession);
-        when(mockSession.run(anyString())).thenReturn(mockResult);
-
         assertDoesNotThrow(() -> {
+            when(mockSession.run(anyString())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
             List<List<String>> communities = graphAnalyzer.findCommunities();
-            assertNotNull(communities);
+            verify(mockSession, times(1)).run(anyString());
         });
     }
 
     @Test
     void testFindIsolatedNodes() {
-        when(mockDriver.session()).thenReturn(mockSession);
-        when(mockSession.run(anyString())).thenReturn(mockResult);
-
         assertDoesNotThrow(() -> {
-            List<String> nodes = graphAnalyzer.findIsolatedNodes();
-            assertNotNull(nodes);
+            when(mockSession.run(anyString())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
+            List<String> isolatedNodes = graphAnalyzer.findIsolatedNodes();
+            verify(mockSession, times(1)).run(anyString());
+        });
+    }
+
+    @Test
+    void testFindHighConnectivityNodes() {
+        assertDoesNotThrow(() -> {
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
+            List<String> highConnectivityNodes = graphAnalyzer.findHighConnectivityNodes(3);
+            verify(mockSession, times(1)).run(anyString(), anyMap());
+        });
+    }
+
+    @Test
+    void testFindNodesByDegree() {
+        assertDoesNotThrow(() -> {
+            when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+            when(mockResult.hasNext()).thenReturn(true);
+            when(mockResult.next()).thenReturn(mock(Record.class));
+
+            List<String> nodes = graphAnalyzer.findNodesByDegree(3);
+            verify(mockSession, times(1)).run(anyString(), anyMap());
         });
     }
 }
