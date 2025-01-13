@@ -25,15 +25,21 @@ public class GraphManipulatorTest {
         graphManipulator = new GraphManipulator(mockDriver);
     }
 
+    // Método de ayuda para configurar el mock de run()
+    private void setupRunMock() {
+        Answer<Result> answer = invocation -> {
+            return mock(Result.class);
+        };
+        
+        doAnswer(answer).when(mockSession).run(anyString(), any(Map.class));
+    }
+
     @Test
     void testEnsureGraphProjection() {
         String graphName = "testGraph";
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                ArgumentMatchers.anyString(),
-                ArgumentMatchers.<Map<String,Object>>any())
-            ).thenReturn(mock(Result.class));
+            setupRunMock();
 
             graphManipulator.ensureGraphProjection(graphName);
 
@@ -66,16 +72,13 @@ public class GraphManipulatorTest {
         Set<String> newWords = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                ArgumentMatchers.anyString(),
-                ArgumentMatchers.<Map<String,Object>>any())
-            ).thenReturn(mock(Result.class));
+            setupRunMock();
 
             graphManipulator.connectWithExistingWords(newWords);
 
             verify(mockSession, times(1)).run(
                 anyString(),
-                ArgumentMatchers.<Map<String,Object>>any()
+                any(Map.class)
             );
         });
     }
@@ -85,10 +88,7 @@ public class GraphManipulatorTest {
         Set<String> words = Set.of("word1", "word2");
 
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                ArgumentMatchers.anyString(),
-                ArgumentMatchers.<Map<String,Object>>any())
-            ).thenReturn(mock(Result.class));
+            setupRunMock();
 
             graphManipulator.connectWords(words);
 
