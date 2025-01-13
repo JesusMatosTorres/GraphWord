@@ -2,7 +2,9 @@ package storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.neo4j.driver.*;
 
 import java.util.List;
 
@@ -13,84 +15,125 @@ public class GraphAnalyzerTest {
 
     private GraphAnalyzer graphAnalyzer;
 
+    @Mock
+    private Driver mockDriver;
+    @Mock
+    private Session mockSession;
+    @Mock
+    private Result mockResult;
+
     @BeforeEach
     void setUp() {
-        graphAnalyzer = mock(GraphAnalyzer.class);
+        MockitoAnnotations.openMocks(this);
+        graphAnalyzer = new GraphAnalyzer(mockDriver);
     }
 
     @Test
-    void testFindShortestPathSuccess() {
-        when(graphAnalyzer.findShortestPath("node1", "node2"))
-                .thenReturn(List.of("node1", "node2"));
+    void testFindShortestPath() {
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true, false);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("path")).thenReturn(Values.value(List.of("node1", "node2")));
 
         List<String> path = graphAnalyzer.findShortestPath("node1", "node2");
 
-        assertNotNull(path, "Shortest path should not be null.");
-        assertEquals(2, path.size(), "Path size should be 2.");
-        assertEquals("node1", path.get(0));
-        assertEquals("node2", path.get(1));
+        assertNotNull(path);
+        assertEquals(List.of("node1", "node2"), path);
     }
 
     @Test
-    void testFindShortestPathError() {
-        when(graphAnalyzer.findShortestPath("node1", "node2")).thenThrow(new RuntimeException("Error"));
+    void testFindAllPaths() {
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true, true, false);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("path")).thenReturn(Values.value(List.of("node1", "node2")));
 
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            graphAnalyzer.findShortestPath("node1", "node2");
-        });
+        List<List<String>> paths = graphAnalyzer.findAllPaths("node1", "node2");
 
-        assertEquals("Error", exception.getMessage());
-    }
-
-    @Test
-    void testFindCommunitiesSuccess() {
-        when(graphAnalyzer.findCommunities())
-                .thenReturn(List.of(List.of("node1", "node2")));
-
-        List<List<String>> communities = graphAnalyzer.findCommunities();
-
-        assertNotNull(communities, "Communities should not be null.");
-        assertEquals(1, communities.size());
-        assertEquals(2, communities.get(0).size());
-    }
-
-    @Test
-    void testFindIsolatedNodes() {
-        when(graphAnalyzer.findIsolatedNodes()).thenReturn(List.of("node3"));
-
-        List<String> isolatedNodes = graphAnalyzer.findIsolatedNodes();
-
-        assertNotNull(isolatedNodes, "Isolated nodes should not be null.");
-        assertEquals(1, isolatedNodes.size());
-        assertEquals("node3", isolatedNodes.get(0));
+        assertNotNull(paths);
+        assertEquals(2, paths.size());
+        assertEquals(List.of("node1", "node2"), paths.get(0));
     }
 
     @Test
     void testFindMaximumDistance() {
-        when(graphAnalyzer.findMaximumDistance()).thenReturn(5);
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("maxDistance")).thenReturn(Values.value(10));
 
         int maxDistance = graphAnalyzer.findMaximumDistance();
 
-        assertEquals(5, maxDistance, "Maximum distance should be 5.");
+        assertEquals(10, maxDistance);
+    }
+
+    @Test
+    void testFindCommunities() {
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true, false);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("members")).thenReturn(Values.value(List.of("node1", "node2")));
+
+        List<List<String>> communities = graphAnalyzer.findCommunities();
+
+        assertNotNull(communities);
+        assertEquals(1, communities.size());
+        assertEquals(List.of("node1", "node2"), communities.get(0));
+    }
+
+    @Test
+    void testFindIsolatedNodes() {
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true, false);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("name")).thenReturn(Values.value("node1"));
+
+        List<String> isolatedNodes = graphAnalyzer.findIsolatedNodes();
+
+        assertNotNull(isolatedNodes);
+        assertEquals(1, isolatedNodes.size());
+        assertEquals("node1", isolatedNodes.get(0));
     }
 
     @Test
     void testFindHighConnectivityNodes() {
-        when(graphAnalyzer.findHighConnectivityNodes(3)).thenReturn(List.of("node1", "node2"));
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true, false);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("name")).thenReturn(Values.value("node1"));
 
-        List<String> nodes = graphAnalyzer.findHighConnectivityNodes(3);
+        List<String> highConnectivityNodes = graphAnalyzer.findHighConnectivityNodes(3);
 
-        assertNotNull(nodes, "Nodes should not be null.");
-        assertEquals(2, nodes.size());
+        assertNotNull(highConnectivityNodes);
+        assertEquals(1, highConnectivityNodes.size());
+        assertEquals("node1", highConnectivityNodes.get(0));
     }
 
     @Test
     void testFindNodesByDegree() {
-        when(graphAnalyzer.findNodesByDegree(2)).thenReturn(List.of("node1", "node2"));
+        when(mockDriver.session()).thenReturn(mockSession);
+        when(mockSession.run(anyString(), anyMap())).thenReturn(mockResult);
+        when(mockResult.hasNext()).thenReturn(true, false);
+        Record record = mock(Record.class);
+        when(mockResult.next()).thenReturn(record);
+        when(record.get("name")).thenReturn(Values.value("node1"));
 
         List<String> nodes = graphAnalyzer.findNodesByDegree(2);
 
-        assertNotNull(nodes, "Nodes should not be null.");
-        assertEquals(2, nodes.size());
+        assertNotNull(nodes);
+        assertEquals(1, nodes.size());
+        assertEquals("node1", nodes.get(0));
     }
 }
