@@ -32,11 +32,13 @@ public class GraphManipulatorTest {
 
     // Método de ayuda para configurar el mock de run()
     private void setupRunMock() {
-        Result mockResult = mock(Result.class);
-        // Configuramos el comportamiento específico para cada tipo de parámetro
-        when(mockSession.run(anyString(), any(Value.class))).thenReturn(mockResult);
-        when(mockSession.run(anyString(), any(TransactionConfig.class))).thenReturn(mockResult);
+    Result mockResult = mock(Result.class);
+    // Configuramos el comportamiento específico para cada tipo de parámetro
+    when(mockSession.run(anyString(), any(Value.class))).thenReturn(mockResult);
+    // Aseguramos que el método run() con TransactionConfig no se llame
+    when(mockSession.run(anyString(), any(TransactionConfig.class))).thenThrow(new IllegalArgumentException("Ambiguous call"));
     }
+
 
     @Test
     void testEnsureGraphProjection() {
