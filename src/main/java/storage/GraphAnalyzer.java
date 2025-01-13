@@ -13,6 +13,10 @@ public class GraphAnalyzer implements GraphAnalysis, AutoCloseable {
         this.driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
     }
 
+    public GraphAnalyzer(Driver driver) { //// Additional builder for Driver injection
+        this.driver = driver;
+    }
+
     // mejorable
     @Override
     public List<String> findShortestPath(String source, String target) {
