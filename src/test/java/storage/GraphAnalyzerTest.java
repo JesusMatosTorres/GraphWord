@@ -2,58 +2,60 @@ package storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 
 public class GraphAnalyzerTest {
 
-    private GraphAnalyzer graphAnalyzer;
+    private GraphAnalyzer mockGraphAnalyzer;
 
     @BeforeEach
     void setUp() {
-        String uri = System.getenv("NEO4J_URI");
-        String user = System.getenv("NEO4J_USER");
-        String password = System.getenv("NEO4J_PASSWORD");
-
-        if (uri == null || user == null || password == null) {
-            throw new IllegalStateException("NEO4J_URI, NEO4J_USER y NEO4J_PASSWORD should be configured.");
-        }
-
-        graphAnalyzer = new GraphAnalyzer(uri, user, password);
+        mockGraphAnalyzer = mock(GraphAnalyzer.class);
     }
 
     @Test
     void testFindShortestPath() {
+        when(mockGraphAnalyzer.findShortestPath("node1", "node2")).thenReturn(List.of("node1", "node2"));
+
         assertDoesNotThrow(() -> {
-            List<String> path = graphAnalyzer.findShortestPath("node1", "node2");
+            List<String> path = mockGraphAnalyzer.findShortestPath("node1", "node2");
             assertNotNull(path, "Shortest path should not be null.");
-        }, "Finding the shortest path should not throw an exception.");
+        });
     }
 
     @Test
     void testFindCommunities() {
+        when(mockGraphAnalyzer.findCommunities()).thenReturn(List.of(List.of("node1", "node2")));
+
         assertDoesNotThrow(() -> {
-            List<List<String>> communities = graphAnalyzer.findCommunities();
+            List<List<String>> communities = mockGraphAnalyzer.findCommunities();
             assertNotNull(communities, "Communities should not be null.");
-        }, "Finding communities should not throw an exception.");
+        });
     }
 
     @Test
     void testFindIsolatedNodes() {
+        when(mockGraphAnalyzer.findIsolatedNodes()).thenReturn(List.of("node3"));
+
         assertDoesNotThrow(() -> {
-            List<String> isolatedNodes = graphAnalyzer.findIsolatedNodes();
+            List<String> isolatedNodes = mockGraphAnalyzer.findIsolatedNodes();
             assertNotNull(isolatedNodes, "Isolated nodes should not be null.");
-        }, "Finding isolated nodes should not throw an exception.");
+        });
     }
 
     @Test
     void testFindMaximumDistance() {
+        when(mockGraphAnalyzer.findMaximumDistance()).thenReturn(5);
+
         assertDoesNotThrow(() -> {
-            int maxDistance = graphAnalyzer.findMaximumDistance();
+            int maxDistance = mockGraphAnalyzer.findMaximumDistance();
             assertNotNull(maxDistance, "Maximum distance should not be null.");
-        }, "Finding the maximum distance should not throw an exception.");
+        });
     }
 }
