@@ -27,16 +27,18 @@ class GraphControllerTest {
         mockAnalysis = mock(GraphAnalysis.class);
         mockRequest = mock(Request.class);
         mockResponse = mock(Response.class);
-        controller = new GraphController(mockProcessor, mockAnalysis);
+        controller = spy(new GraphController(mockProcessor, mockAnalysis));
         gson = new Gson();
 
         doNothing().when(mockResponse).type(anyString());
         doNothing().when(mockResponse).status(anyInt());
+        when(mockRequest.queryParams(anyString())).thenReturn(null);
     }
 
     @Test
     void testProcessDirectory_Success() throws Exception {
         doNothing().when(mockProcessor).processDirectory(anyString());
+        when(mockRequest.queryParams("directory")).thenReturn("/some/path");
         
         controller.setupRoutes();
 
@@ -51,6 +53,7 @@ class GraphControllerTest {
     @Test
     void testProcessDirectory_Error() throws Exception {
         doThrow(new GraphWordException("Error processing")).when(mockProcessor).processDirectory(anyString());
+        when(mockRequest.queryParams("directory")).thenReturn("/some/path");
 
         controller.setupRoutes();
 
@@ -69,8 +72,13 @@ class GraphControllerTest {
                 switch (routePath) {
                     case "/graph/process":
                         if (method.equals("post")) {
+                            String directory = request.queryParams("directory");
+                            if (directory == null) {
+                                response.status(400);
+                                return gson.toJson(Map.of("error", "Directory parameter is required"));
+                            }
                             try {
-                                mockProcessor.processDirectory(anyString());
+                                mockProcessor.processDirectory(directory);
                                 response.status(200);
                                 return "All files processed successfully!";
                             } catch (GraphWordException e) {
@@ -404,6 +412,7 @@ class GraphControllerTest {
     void testProcessDirectory_ConfigEmpty() throws Exception {
         doThrow(new GraphWordException("Configuration 'libros.directory' cannot be empty."))
             .when(mockProcessor).processDirectory(anyString());
+        when(mockRequest.queryParams("directory")).thenReturn("/some/path");
 
         controller.setupRoutes();
 
@@ -532,6 +541,7 @@ class GraphControllerTest {
     void testProcessDirectory_EmptyDirectory() throws Exception {
         doThrow(new GraphWordException("Directory is empty"))
             .when(mockProcessor).processDirectory(anyString());
+        when(mockRequest.queryParams("directory")).thenReturn("/some/path");
 
         controller.setupRoutes();
         
