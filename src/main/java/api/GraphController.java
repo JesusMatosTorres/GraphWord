@@ -24,6 +24,14 @@ public class GraphController {
         this.gson = new Gson();
     }
 
+    public GraphProcessor getGraphProcessor() {
+        return graphProcessor;
+    }
+
+    public GraphAnalysis getGraphAnalysis() {
+        return graphAnalysis;
+    }
+
     public void setupRoutes() {
 
         // Endpoint: Process all files in a directory
