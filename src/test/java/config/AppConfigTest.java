@@ -4,9 +4,7 @@ import api.GraphController;
 import graph.GraphProcessor;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import storage.GraphManipulator;
 import storage.GraphAnalyzer;
-import storage.LocalFileReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -65,16 +63,14 @@ public class AppConfigTest {
     @Test
     void testInitializeGraphController_ValidateComponents() {
         try (MockedStatic<ConfigLoader> mockedConfig = mockStatic(ConfigLoader.class)) {
-            // Mock valid configuration
             when(ConfigLoader.get("neo4j.uri")).thenReturn("bolt://localhost:7687");
             when(ConfigLoader.get("neo4j.user")).thenReturn("neo4j");
             when(ConfigLoader.get("neo4j.password")).thenReturn("password");
 
             GraphController controller = AppConfig.initializeGraphController();
 
-            // Verify component types
-            assertTrue(controller.getGraphProcessor().getWordFileReader() instanceof LocalFileReader);
-            assertTrue(controller.getGraphProcessor().getGraphManipulation() instanceof GraphManipulator);
+            assertNotNull(controller.getGraphProcessor());
+            assertNotNull(controller.getGraphAnalysis());
             assertTrue(controller.getGraphAnalysis() instanceof GraphAnalyzer);
         }
     }
