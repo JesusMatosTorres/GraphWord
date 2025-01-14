@@ -30,16 +30,42 @@ jobs:
       - name: Generate JaCoCo report
         run: mvn jacoco:report
 
+      - name: Check if JaCoCo HTML report exists
+        run: |
+          if [ -f target/site/jacoco/index.html ]; then
+            echo "JaCoCo HTML report found."
+          else
+            echo "JaCoCo HTML report not found at target/site/jacoco/index.html"
+            exit 1
+          fi
+
+      - name: Debug JaCoCo HTML report
+        run: |
+          grep 'Total</td>' target/site/jacoco/index.html || echo "No Total coverage found in HTML report."
+
       - name: Verify coverage threshold
         run: |
           THRESHOLD=40
-          TOTAL_COVERAGE=$(grep -Po '(?<=<td>Total</td><td class="bar">)[^<]+(?=</td><td class="ctr2">)' target/site/jacoco/index.html | grep -Po '[0-9]+(?=%)')
           
-          if [ -z "$TOTAL_COVERAGE" ]; then
-            echo "Error: Unable to retrieve total coverage. Check the JaCoCo HTML report."
+          # Extraer la línea con cobertura total
+          LINE=$(grep '<td>Total</td><td class="bar">' target/site/jacoco/index.html)
+          
+          if [ -z "$LINE" ]; then
+            echo "Error: Unable to find Total coverage line in JaCoCo HTML report."
             exit 1
           fi
           
+          # Extraer el porcentaje de cobertura
+          TOTAL_COVERAGE=$(echo "$LINE" | grep -Po '(?<=<td class="ctr2">)[0-9]+(?=%)')
+          
+          if [ -z "$TOTAL_COVERAGE" ]; then
+            echo "Error: Unable to extract Total coverage percentage."
+            exit 1
+          fi
+          
+          echo "Extracted Coverage: $TOTAL_COVERAGE%"
+          
+          # Comparar con el umbral
           if (( TOTAL_COVERAGE < THRESHOLD )); then
             echo "Coverage below threshold: $TOTAL_COVERAGE%"
             exit 1
