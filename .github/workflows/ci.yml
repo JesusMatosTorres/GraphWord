@@ -30,14 +30,27 @@ jobs:
       - name: Generate JaCoCo report
         run: mvn jacoco:report
 
+      - name: Debug JaCoCo report
+        run: |
+          if [ -f target/site/jacoco/jacoco.xml ]; then
+            echo "JaCoCo report exists:"
+            cat target/site/jacoco/jacoco.xml
+          else
+            echo "JaCoCo report not found at target/site/jacoco/jacoco.xml"
+            exit 1
+          fi
+
       - name: Verify coverage threshold
         run: |
           THRESHOLD=40
-          COVERAGE=$(grep -Po '<line-rate>\K[0-9.]+' target/site/jacoco/jacoco.xml | awk '{print $1 * 100}')
-          if [ -z "$COVERAGE" ]; then
-            echo "Error: Unable to retrieve coverage. Check if the JaCoCo report was generated correctly."
+          MISSED=$(grep -Po '<counter type="INSTRUCTION" missed="\K[0-9]+' target/site/jacoco/jacoco.xml | awk '{sum+=$1} END {print sum}')
+          COVERED=$(grep -Po '<counter type="INSTRUCTION" covered="\K[0-9]+' target/site/jacoco/jacoco.xml | awk '{sum+=$1} END {print sum}')
+          if [ -z "$MISSED" ] || [ -z "$COVERED" ]; then
+            echo "Error: Unable to retrieve instruction data. Check the JaCoCo report."
             exit 1
           fi
+          TOTAL=$((MISSED + COVERED))
+          COVERAGE=$(echo "scale=2; ($COVERED / $TOTAL) * 100" | bc)
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "Coverage below threshold: $COVERAGE%"
             exit 1
