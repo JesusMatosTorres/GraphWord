@@ -130,9 +130,6 @@ public class GraphProcessorTest {
         doNothing().when(mockGraphManipulation).ensureGraphProjection(anyString());
     
         GraphProcessor graphProcessor = new GraphProcessor(mockWordFileReader, mockGraphManipulation) {
-            protected Set<String> getProcessedFiles() {
-                return processedFiles;
-            }
             @Override
             public void processDirectory(String path) {
                 File directory = mockDirectory; 
