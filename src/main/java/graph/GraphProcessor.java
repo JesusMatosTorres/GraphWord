@@ -96,4 +96,12 @@ public class GraphProcessor {
     protected Set<String> getProcessedFiles() {
         return processedFiles;
     }
+
+    public WordFileReader getWordFileReader() {
+        return wordFileReader;
+    }
+
+    public GraphManipulation getGraphManipulation() {
+        return graphManipulation;
+    }
 }
