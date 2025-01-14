@@ -37,7 +37,7 @@ After installation, you can utilize GraphWord to generate and analyze word graph
    java -jar target/graphword-1.0.jar
    ```
 2. **Access the API**:
-   Once the application is running, access the API endpoints to interact with the word graphs. Refer to the API documentation for detailed instructions.
+   Once the application is running, access the API endpoints to interact with the word graphs.
 
 ## Authors
 
