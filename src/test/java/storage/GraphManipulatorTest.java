@@ -3,7 +3,7 @@ package storage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 
@@ -57,7 +57,7 @@ public class GraphManipulatorTest {
     @Test
     void testConnectWithExistingWords() {
         Set<String> words = Set.of("word1", "word2");
-        
+
         Result mockSearchResult = mock(Result.class);
         Result mockCountResult = mock(Result.class);
         org.neo4j.driver.Record mockRecord = mock(org.neo4j.driver.Record.class);
@@ -67,14 +67,14 @@ public class GraphManipulatorTest {
         when(mockCountResult.hasNext()).thenReturn(true);
         when(mockCountResult.next()).thenReturn(mockCountRecord);
         when(mockSession.run("MATCH (n) RETURN count(n) AS nodeCount"))
-            .thenReturn(mockCountResult);
+                .thenReturn(mockCountResult);
 
         when(mockRecord.get("name")).thenReturn(Values.value("word1"));
         when(mockSearchResult.hasNext()).thenReturn(true, false);
         when(mockSearchResult.next()).thenReturn(mockRecord);
         when(mockSession.run(
-            "MATCH (w:Word) WHERE w.name IN $words RETURN w.name as name",
-            Values.parameters("words", words)
+                "MATCH (w:Word) WHERE w.name IN $words RETURN w.name as name",
+                Values.parameters("words", words)
         )).thenReturn(mockSearchResult);
 
         assertDoesNotThrow(() -> {
@@ -94,5 +94,24 @@ public class GraphManipulatorTest {
             graphManipulator.connectWords(words);
             verify(mockSession, atLeastOnce()).run(anyString(), any(Value.class));
         });
+    }
+
+    @Test
+    void testIsOneLetterDifference() {
+        String word1 = "word";
+        String word2 = "lord";
+        assertTrue(graphManipulator.isOneLetterDifference(word1, word2), 
+                  "Should be true for one letter difference (word vs lord)");
+        
+        assertTrue(graphManipulator.isOneLetterDifference("word", "ward"), 
+                  "Should be true for one letter difference");
+        assertTrue(graphManipulator.isOneLetterDifference("cat", "hat"), 
+                  "Should be true for one letter difference");
+        assertFalse(graphManipulator.isOneLetterDifference("word", "word"), 
+                   "Should be false for identical words");
+        assertFalse(graphManipulator.isOneLetterDifference("word", "words"), 
+                   "Should be false for different lengths");
+        assertFalse(graphManipulator.isOneLetterDifference("word", "cold"), 
+                   "Should be false for two letter differences");
     }
 }
