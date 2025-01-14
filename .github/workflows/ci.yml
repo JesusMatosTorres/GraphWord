@@ -27,9 +27,20 @@ jobs:
       - name: Install dependencies and run tests
         run: mvn clean verify -X
 
-      - name: Generate Jacoco report
+      - name: Generate JaCoCo report
         run: mvn jacoco:report
 
+      - name: Verify coverage threshold
+        run: |
+          COVERAGE=$(grep -oP '(?<=<counter type="INSTRUCTION" missed=")[0-9]+(?=" covered="[0-9]+)' target/site/jacoco/jacoco.xml | awk '{missed+=$1} END {print missed}')
+          COVERED=$(grep -oP '(?<=<counter type="INSTRUCTION" missed="[0-9]+" covered=")[0-9]+(?=")' target/site/jacoco/jacoco.xml | awk '{covered+=$1} END {print covered}')
+          TOTAL=$((COVERAGE + COVERED))
+          PERCENT=$((COVERED * 100 / TOTAL))
+          echo "Coverage: $PERCENT%"
+          if [ "$PERCENT" -lt 40 ]; then
+            echo "Coverage below threshold: $PERCENT%"
+            exit 1
+          fi
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
