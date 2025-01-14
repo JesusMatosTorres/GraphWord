@@ -39,26 +39,12 @@ After installation, you can utilize GraphWord to generate and analyze word graph
 2. **Access the API**:
    Once the application is running, access the API endpoints to interact with the word graphs. Refer to the API documentation for detailed instructions.
 
-## Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Make your changes and commit them:
-   ```bash
-   git commit -m 'Add new feature'
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Open a Pull Request.
-
 ## Acknowledgments
 
 Special thanks to the contributors and the open-source community for their support and resources.
+
+## Authors
+
+- Jesús Matos Torres --> https://github.com/JesusMatosTorres
+- Miriam Méndez Romero --> https://github.com/mmdezr
 
