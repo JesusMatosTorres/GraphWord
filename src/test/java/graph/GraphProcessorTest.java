@@ -2,6 +2,7 @@ package graph;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import storage.GraphManipulation;
 import storage.WordFileReader;
 import utils.GraphWordException;
@@ -97,71 +98,48 @@ public class GraphProcessorTest {
         verify(mockGraphManipulation).insertWords(Set.of("word1", "word2"));
     }
 
-    @Test
     void testProcessDirectory() {
-        String directoryPath = "testDirectory";
-        
-        // Mock directory
-        File mockDirectory = mock(File.class);
-        when(mockDirectory.exists()).thenReturn(true);
-        when(mockDirectory.isDirectory()).thenReturn(true);
-        
-        // Mock files in the directory
+        // Setup mocks for the directory and files
         File mockFile1 = mock(File.class);
         File mockFile2 = mock(File.class);
-        File[] mockFiles = {mockFile1, mockFile2};
-        
-        when(mockDirectory.listFiles()).thenReturn(mockFiles);
-        
-        // Mock behavior of files
+
+        // Configure mock files behavior
         when(mockFile1.isFile()).thenReturn(true);
         when(mockFile1.getName()).thenReturn("file1.txt");
-        when(mockFile1.getAbsolutePath()).thenReturn("testDirectory/file1.txt");
-        
+        when(mockFile1.getAbsolutePath()).thenReturn("validDirectory/file1.txt");
+
         when(mockFile2.isFile()).thenReturn(true);
         when(mockFile2.getName()).thenReturn("file2.txt");
-        when(mockFile2.getAbsolutePath()).thenReturn("testDirectory/file2.txt");
-    
-        // Mock processed files behavior
-        when(mockWordFileReader.extractWords("testDirectory/file1.txt")).thenReturn(Set.of("word1", "word2"));
-        when(mockWordFileReader.extractWords("testDirectory/file2.txt")).thenReturn(Set.of("word3", "word4"));
-        doNothing().when(mockGraphManipulation).insertWords(anySet());
-        doNothing().when(mockGraphManipulation).connectWithExistingWords(anySet());
-        doNothing().when(mockGraphManipulation).ensureGraphProjection(anyString());
-    
-        GraphProcessor graphProcessor = new GraphProcessor(mockWordFileReader, mockGraphManipulation) {
-            @Override
-            public void processDirectory(String path) {
-                File directory = mockDirectory; 
-                if (!directory.exists() || !directory.isDirectory()) {
-                    throw new GraphWordException("Directory '" + path + "' does not exist or is not a directory.");
-                }
-                File[] files = directory.listFiles();
-                if (files == null || files.length == 0) {
-                    System.out.println("No new files to process.");
-                    return;
-                }
-                for (File file : files) {
-                    if (!getProcessedFiles().contains(file.getName()) && file.isFile()) {
-                        try {
-                            processGraph(file.getAbsolutePath());
-                            getProcessedFiles().add(file.getName());
-                        } catch (GraphWordException e) {
-                            System.err.println("Error processing file " + file.getName() + ": " + e.getMessage());
-                        }
-                    }
-                }
-            }
-        };
-    
-        graphProcessor.processDirectory(directoryPath);
-    
-        verify(mockWordFileReader).extractWords("testDirectory/file1.txt");
-        verify(mockWordFileReader).extractWords("testDirectory/file2.txt");
-        verify(mockGraphManipulation).insertWords(Set.of("word1", "word2"));
-        verify(mockGraphManipulation).connectWithExistingWords(Set.of("word1", "word2"));
-        verify(mockGraphManipulation).insertWords(Set.of("word3", "word4"));
-        verify(mockGraphManipulation).connectWithExistingWords(Set.of("word3", "word4"));
+        when(mockFile2.getAbsolutePath()).thenReturn("validDirectory/file2.txt");
+
+        try (MockedStatic<File> mockedFileStatic = mockStatic(File.class)) {
+            File mockDirectory = mock(File.class);
+
+            // Mock static File creation and directory behavior
+            mockedFileStatic.when(() -> new File("validDirectory")).thenReturn(mockDirectory);
+            when(mockDirectory.exists()).thenReturn(true);
+            when(mockDirectory.isDirectory()).thenReturn(true);
+            when(mockDirectory.listFiles()).thenReturn(new File[]{mockFile1, mockFile2});
+
+            // Mock WordFileReader and GraphManipulation
+            when(mockWordFileReader.extractWords("validDirectory/file1.txt")).thenReturn(Set.of("word1", "word2"));
+            when(mockWordFileReader.extractWords("validDirectory/file2.txt")).thenReturn(Set.of("word3", "word4"));
+
+            // Act: Process the directory
+            graphProcessor.processDirectory("validDirectory");
+
+            // Verify interactions with mocked dependencies
+            verify(mockWordFileReader).extractWords("validDirectory/file1.txt");
+            verify(mockWordFileReader).extractWords("validDirectory/file2.txt");
+            verify(mockGraphManipulation).insertWords(Set.of("word1", "word2"));
+            verify(mockGraphManipulation).connectWithExistingWords(Set.of("word1", "word2"));
+            verify(mockGraphManipulation).insertWords(Set.of("word3", "word4"));
+            verify(mockGraphManipulation).connectWithExistingWords(Set.of("word3", "word4"));
+
+            // Assert processed files are tracked
+            assertTrue(graphProcessor.getProcessedFiles().contains("file1.txt"));
+            assertTrue(graphProcessor.getProcessedFiles().contains("file2.txt"));
+        }
     }
     
 
