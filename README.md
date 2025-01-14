@@ -39,10 +39,6 @@ After installation, you can utilize GraphWord to generate and analyze word graph
 2. **Access the API**:
    Once the application is running, access the API endpoints to interact with the word graphs. Refer to the API documentation for detailed instructions.
 
-## Acknowledgments
-
-Special thanks to the contributors and the open-source community for their support and resources.
-
 ## Authors
 
 - Jesús Matos Torres --> https://github.com/JesusMatosTorres
