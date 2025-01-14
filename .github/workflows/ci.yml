@@ -34,17 +34,8 @@ jobs:
         run: |
           THRESHOLD=40
 
-          # Extraer la línea que contiene "Total"
-          LINE=$(grep '<td>Total</td><td class="bar">' target/site/jacoco/index.html)
-
-          # Validar que se haya encontrado la línea
-          if [ -z "$LINE" ]; then
-            echo "Error: Unable to find Total coverage line in JaCoCo HTML report."
-            exit 1
-          fi
-
-          # Extraer el porcentaje de cobertura usando grep para capturar solo el número
-          TOTAL_COVERAGE=$(echo "$LINE" | grep -Po '(?<=<td class="ctr2">)[0-9]+')
+          # Extraer la línea que contiene "Total" y filtrar el porcentaje de cobertura
+          TOTAL_COVERAGE=$(grep '<td>Total</td><td class="bar">' target/site/jacoco/index.html | grep -Po '(?<=<td class="ctr2">)[0-9]+')
 
           # Validar que se haya extraído el porcentaje
           if [ -z "$TOTAL_COVERAGE" ]; then
@@ -52,15 +43,15 @@ jobs:
             exit 1
           fi
 
-          echo "Extracted Coverage: $TOTAL_COVERAGE%"
+          echo "Extracted Coverage: $TOTAL_COVERAGE"
 
           # Comparar el valor con el umbral
           if (( TOTAL_COVERAGE < THRESHOLD )); then
-            echo "Coverage below threshold: $TOTAL_COVERAGE%"
+            echo "Coverage below threshold: $TOTAL_COVERAGE"
             exit 1
           fi
 
-          echo "Coverage meets the threshold: $TOTAL_COVERAGE%"
+          echo "Coverage meets the threshold: $TOTAL_COVERAGE"
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
