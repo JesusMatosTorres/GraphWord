@@ -33,10 +33,7 @@ To set up the GraphWord project locally, follow these steps:
 After installation, you can utilize GraphWord to generate and analyze word graphs. Here's how to get started:
 
 1. **Run the Application**:
-   ```bash
-   cd target
-   java -jar untitled-1.0-SNAPSHOT.jar
-   ```
+ 
 2. **Access the API**:
    Once the application is running, access the API endpoints to interact with the word graphs.
 
