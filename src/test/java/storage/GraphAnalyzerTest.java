@@ -2,12 +2,14 @@ package storage;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.neo4j.driver.*;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class GraphAnalyzerTest {
@@ -29,33 +31,32 @@ public class GraphAnalyzerTest {
 
     @Test
     void testFindShortestPath() {
+        Result mockResult = mock(Result.class);
+        when(mockSession.run(
+                eq("MATCH path = shortestPath((start:Word {name: $source})-[:CONNECTED*]-(end:Word {name: $target})) " +
+                "RETURN [node IN nodes(path) | node.name] AS path"),
+                eq(Values.parameters("source", "node1", "target", "node2"))
+        )).thenReturn(mockResult);
+
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                eq("MATCH path = shortestPath((start:Word {name: $source})-[:CONNECTED*]-(end:Word {name: $target})) RETURN [node IN nodes(path) | node.name] AS path"),
-                Mockito.<TransactionConfig>any()
-            )).thenReturn(mockResult);
-
-            when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class));
-
-            List<String> path = graphAnalyzer.findShortestPath("node1", "node2");
-            verify(mockSession, times(1)).run(anyString(), anyMap());
+            graphAnalyzer.findShortestPath("node1", "node2");
+            verify(mockSession).run(anyString(), any(Value.class));
         });
     }
 
     @Test
     void testFindAllPaths() {
+        Result mockResult = mock(Result.class);
+        when(mockSession.run(
+                eq("MATCH path = (start:Word {name: $source})-[*]-(end:Word {name: $target}) " +
+                "WHERE ALL(node IN nodes(path) WHERE single(x IN nodes(path) WHERE x = node)) " +
+                "RETURN [node IN nodes(path) | node.name] AS path, size(relationships(path)) AS length ORDER BY length ASC LIMIT 10"),
+                eq(Values.parameters("source", "node1", "target", "node2"))
+        )).thenReturn(mockResult);
+
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                eq("MATCH path = (start:Word {name: $source})-[*]-(end:Word {name: $target}) ..."),
-                Mockito.<TransactionConfig>any()
-            )).thenReturn(mockResult);
-
-            when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class));
-
-            List<List<String>> paths = graphAnalyzer.findAllPaths("node1", "node2");
-            verify(mockSession, times(1)).run(anyString(), anyMap());
+            graphAnalyzer.findAllPaths("node1", "node2");
+            verify(mockSession).run(anyString(), any(Value.class));
         });
     }
 
@@ -112,45 +113,37 @@ public class GraphAnalyzerTest {
 
     @Test
     void testFindHighConnectivityNodes() {
+        Result mockResult = mock(Result.class);
+        when(mockSession.run(
+                eq("CALL gds.degree.stream('myGraph')\n" +
+                "YIELD nodeId, score\n" +
+                "WHERE score >= $minDegree\n" +
+                "MATCH (n:Word) WHERE id(n) = nodeId\n" +
+                "RETURN n.name AS name, score\n" +
+                "ORDER BY score DESC\n"),
+                eq(Values.parameters("minDegree", 3))
+        )).thenReturn(mockResult);
+
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                eq("""
-                   CALL gds.degree.stream('myGraph')
-                   YIELD nodeId, score
-                   WHERE score >= $minDegree
-                   MATCH (n:Word) WHERE id(n) = nodeId
-                   RETURN n.name AS name, score
-                   ORDER BY score DESC
-                   """),
-                Mockito.<TransactionConfig>any()
-            )).thenReturn(mockResult);
-
-            when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class));
-
-            List<String> highConnectivityNodes = graphAnalyzer.findHighConnectivityNodes(3);
-            verify(mockSession, times(1)).run(anyString(), anyMap());
+            graphAnalyzer.findHighConnectivityNodes(3);
+            verify(mockSession).run(anyString(), any(Value.class));
         });
     }
 
     @Test
     void testFindNodesByDegree() {
+        Result mockResult = mock(Result.class);
+        when(mockSession.run(
+                eq("MATCH (n:Word)-[r]-()\n" +
+                "WITH n, COUNT(r) AS degree\n" +
+                "WHERE degree = $degree\n" +
+                "RETURN n.name AS name\n"),
+                eq(Values.parameters("degree", 3))
+        )).thenReturn(mockResult);
+
         assertDoesNotThrow(() -> {
-            when(mockSession.run(
-                eq("""
-                   MATCH (n:Word)-[r]-()
-                   WITH n, COUNT(r) AS degree
-                   WHERE degree = $degree
-                   RETURN n.name AS name
-                   """),
-                Mockito.<TransactionConfig>any()
-            )).thenReturn(mockResult);
-
-            when(mockResult.hasNext()).thenReturn(true);
-            when(mockResult.next()).thenReturn(mock(org.neo4j.driver.Record.class));
-
-            List<String> nodes = graphAnalyzer.findNodesByDegree(3);
-            verify(mockSession, times(1)).run(anyString(), anyMap());
+            graphAnalyzer.findNodesByDegree(3);
+            verify(mockSession).run(anyString(), any(Value.class));
         });
     }
 }
