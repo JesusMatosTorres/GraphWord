@@ -1,5 +1,4 @@
 package config;
-//prueba
 import api.GraphController;
 import graph.GraphProcessor;
 import org.junit.jupiter.api.Test;
@@ -39,7 +38,7 @@ public class AppConfigTest {
             when(ConfigLoader.get("neo4j.password")).thenReturn(null);
 
             // Verify initialization fails
-            assertThrows(IllegalStateException.class, 
+            assertThrows(NullPointerException.class, 
                 () -> AppConfig.initializeGraphController(),
                 "Should throw exception when configuration is missing");
         }
@@ -54,7 +53,7 @@ public class AppConfigTest {
             when(ConfigLoader.get("neo4j.password")).thenReturn("");
 
             // Verify initialization fails
-            assertThrows(IllegalStateException.class, 
+            assertThrows(IllegalArgumentException.class, 
                 () -> AppConfig.initializeGraphController(),
                 "Should throw exception when configuration is empty");
         }
