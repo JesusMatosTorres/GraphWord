@@ -4,27 +4,78 @@ import api.GraphController;
 import graph.GraphProcessor;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import storage.GraphAnalysis;
-import storage.GraphManipulation;
+import storage.GraphManipulator;
+import storage.GraphAnalyzer;
+import storage.LocalFileReader;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class AppConfigTest {
 
     @Test
-    void testInitializeGraphController() {
-        GraphManipulation mockGraphManipulation = mock(GraphManipulation.class);
-        GraphAnalysis mockGraphAnalysis = mock(GraphAnalysis.class);
-        GraphProcessor mockGraphProcessor = mock(GraphProcessor.class);
-        GraphController mockGraphController = new GraphController(mockGraphProcessor, mockGraphAnalysis);
+    void testInitializeGraphController_Success() {
+        // Mock ConfigLoader
+        try (MockedStatic<ConfigLoader> mockedConfig = mockStatic(ConfigLoader.class)) {
+            // Mock configuration values
+            when(ConfigLoader.get("neo4j.uri")).thenReturn("bolt://localhost:7687");
+            when(ConfigLoader.get("neo4j.user")).thenReturn("neo4j");
+            when(ConfigLoader.get("neo4j.password")).thenReturn("password");
 
-        try (MockedStatic<AppConfig> mockedAppConfig = mockStatic(AppConfig.class)) {
-            mockedAppConfig.when(AppConfig::initializeGraphController).thenReturn(mockGraphController);
+            // Initialize controller
+            GraphController controller = AppConfig.initializeGraphController();
+
+            // Verify controller and its dependencies are properly initialized
+            assertNotNull(controller, "GraphController should not be null");
+            assertTrue(controller.getGraphProcessor() instanceof GraphProcessor);
+            assertTrue(controller.getGraphAnalysis() instanceof GraphAnalyzer);
+        }
+    }
+
+    @Test
+    void testInitializeGraphController_MissingConfig() {
+        try (MockedStatic<ConfigLoader> mockedConfig = mockStatic(ConfigLoader.class)) {
+            // Mock missing configuration
+            when(ConfigLoader.get("neo4j.uri")).thenReturn(null);
+            when(ConfigLoader.get("neo4j.user")).thenReturn(null);
+            when(ConfigLoader.get("neo4j.password")).thenReturn(null);
+
+            // Verify initialization fails
+            assertThrows(IllegalStateException.class, 
+                () -> AppConfig.initializeGraphController(),
+                "Should throw exception when configuration is missing");
+        }
+    }
+
+    @Test
+    void testInitializeGraphController_EmptyConfig() {
+        try (MockedStatic<ConfigLoader> mockedConfig = mockStatic(ConfigLoader.class)) {
+            // Mock empty configuration
+            when(ConfigLoader.get("neo4j.uri")).thenReturn("");
+            when(ConfigLoader.get("neo4j.user")).thenReturn("");
+            when(ConfigLoader.get("neo4j.password")).thenReturn("");
+
+            // Verify initialization fails
+            assertThrows(IllegalStateException.class, 
+                () -> AppConfig.initializeGraphController(),
+                "Should throw exception when configuration is empty");
+        }
+    }
+
+    @Test
+    void testInitializeGraphController_ValidateComponents() {
+        try (MockedStatic<ConfigLoader> mockedConfig = mockStatic(ConfigLoader.class)) {
+            // Mock valid configuration
+            when(ConfigLoader.get("neo4j.uri")).thenReturn("bolt://localhost:7687");
+            when(ConfigLoader.get("neo4j.user")).thenReturn("neo4j");
+            when(ConfigLoader.get("neo4j.password")).thenReturn("password");
 
             GraphController controller = AppConfig.initializeGraphController();
-            assertNotNull(controller, "The GraphController must not be null.");
+
+            // Verify component types
+            assertTrue(controller.getGraphProcessor().getWordFileReader() instanceof LocalFileReader);
+            assertTrue(controller.getGraphProcessor().getGraphManipulation() instanceof GraphManipulator);
+            assertTrue(controller.getGraphAnalysis() instanceof GraphAnalyzer);
         }
     }
 }
