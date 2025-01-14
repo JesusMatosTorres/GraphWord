@@ -12,7 +12,7 @@ import java.util.Set;
 public class GraphProcessor {
     private final WordFileReader wordFileReader;
     private final GraphManipulation graphManipulation;
-    private final Set<String> processedFiles;
+    private Set<String> processedFiles;
 
     public GraphProcessor(WordFileReader wordFileReader, GraphManipulation graphManipulation) {
         this.wordFileReader = wordFileReader;
@@ -93,4 +93,7 @@ public class GraphProcessor {
         System.out.println("Graph successfully projected for file: " + filePath);
     }
 
+    protected Set<String> getProcessedFiles() {
+        return processedFiles;
+    }
 }
