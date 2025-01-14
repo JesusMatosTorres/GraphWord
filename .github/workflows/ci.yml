@@ -34,6 +34,10 @@ jobs:
         run: |
           THRESHOLD=40
           COVERAGE=$(grep -Po '<line-rate>\K[0-9.]+' target/site/jacoco/jacoco.xml | awk '{print $1 * 100}')
+          if [ -z "$COVERAGE" ]; then
+            echo "Error: Unable to retrieve coverage. Check if the JaCoCo report was generated correctly."
+            exit 1
+          fi
           if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
             echo "Coverage below threshold: $COVERAGE%"
             exit 1
