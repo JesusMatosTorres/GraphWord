@@ -51,7 +51,7 @@ class GraphControllerTest {
     @Test
     void testProcessDirectory_Error() throws Exception {
         doThrow(new GraphWordException("Error processing")).when(mockProcessor).processDirectory(anyString());
-        
+
         controller.setupRoutes();
 
         // Simular la ruta POST /graph/process
@@ -84,14 +84,19 @@ class GraphControllerTest {
                             response.status(400);
                             return gson.toJson(Map.of("error", "Parameter 'source' is required."));
                         }
-                        List<String> shortestPath = mockAnalysis.findShortestPath(
-                            request.queryParams("source"),
-                            request.queryParams("target"));
-                        if (shortestPath.isEmpty()) {
-                            response.status(404);
-                            return gson.toJson(Map.of("error", "No path found"));
+                        try {
+                            List<String> shortestPath = mockAnalysis.findShortestPath(
+                                request.queryParams("source"),
+                                request.queryParams("target"));
+                            if (shortestPath.isEmpty()) {
+                                response.status(404);
+                                return gson.toJson(Map.of("error", "No path found"));
+                            }
+                            return gson.toJson(shortestPath);
+                        } catch (GraphWordException e) {
+                            response.status(400);
+                            return gson.toJson(Map.of("error", e.getMessage()));
                         }
-                        return gson.toJson(shortestPath);
                     case "/graph/communities":
                         List<List<String>> communities = mockAnalysis.findCommunities();
                         if (communities.isEmpty()) {
@@ -107,12 +112,17 @@ class GraphControllerTest {
                         }
                         return gson.toJson(isolatedNodes);
                     case "/graph/maximum-distance":
-                        int maxDistance = mockAnalysis.findMaximumDistance();
-                        if (maxDistance == 0) {
-                            response.status(404);
-                            return gson.toJson(Map.of("error", "No maximum distance found"));
+                        try {
+                            int maxDistance = mockAnalysis.findMaximumDistance();
+                            if (maxDistance == 0) {
+                                response.status(404);
+                                return gson.toJson(Map.of("error", "No maximum distance found"));
+                            }
+                            return gson.toJson(Map.of("maximumDistance", maxDistance));
+                        } catch (GraphWordException e) {
+                            response.status(400);
+                            return gson.toJson(Map.of("error", e.getMessage()));
                         }
-                        return gson.toJson(Map.of("maximumDistance", maxDistance));
                     case "/graph/high-connectivity-nodes":
                         int minDegree = request.queryParams("minDegree") != null ? 
                             Integer.parseInt(request.queryParams("minDegree")) : 6;
@@ -139,14 +149,19 @@ class GraphControllerTest {
                             response.status(400);
                             return gson.toJson(Map.of("error", "Parameters 'source' and 'target' are required."));
                         }
-                        List<List<String>> paths = mockAnalysis.findAllPaths(
-                            request.queryParams("source"),
-                            request.queryParams("target"));
-                        if (paths.isEmpty()) {
-                            response.status(404);
-                            return gson.toJson(Map.of("error", "No paths found"));
+                        try {
+                            List<List<String>> paths = mockAnalysis.findAllPaths(
+                                request.queryParams("source"),
+                                request.queryParams("target"));
+                            if (paths.isEmpty()) {
+                                response.status(404);
+                                return gson.toJson(Map.of("error", "No paths found"));
+                            }
+                            return gson.toJson(paths);
+                        } catch (GraphWordException e) {
+                            response.status(400);
+                            return gson.toJson(Map.of("error", e.getMessage()));
                         }
-                        return gson.toJson(paths);
                 }
             } catch (NumberFormatException e) {
                 response.status(400);
@@ -176,9 +191,9 @@ class GraphControllerTest {
     @Test
     void testShortestPath_MissingParams() throws Exception {
         when(mockRequest.queryParams("source")).thenReturn(null);
-        
+
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("get", "/graph/shortest-path");
         Object result = route.handle(mockRequest, mockResponse);
         
@@ -359,9 +374,9 @@ class GraphControllerTest {
     @Test
     void testAllPaths_MissingParams() throws Exception {
         when(mockRequest.queryParams("source")).thenReturn(null);
-        
+
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("get", "/graph/all-paths");
         Object result = route.handle(mockRequest, mockResponse);
         
@@ -389,9 +404,9 @@ class GraphControllerTest {
     void testProcessDirectory_ConfigEmpty() throws Exception {
         doThrow(new GraphWordException("Configuration 'libros.directory' cannot be empty."))
             .when(mockProcessor).processDirectory(anyString());
-        
+
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("post", "/graph/process");
         Object result = route.handle(mockRequest, mockResponse);
         
@@ -406,7 +421,7 @@ class GraphControllerTest {
             .thenReturn(Arrays.asList("word1", "word2"));
 
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("get", "/graph/high-connectivity-nodes");
         Object result = route.handle(mockRequest, mockResponse);
         
@@ -421,7 +436,7 @@ class GraphControllerTest {
             .thenReturn(Collections.emptyList());
 
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("get", "/graph/isolated-nodes");
         Object result = route.handle(mockRequest, mockResponse);
         
@@ -434,7 +449,7 @@ class GraphControllerTest {
         when(mockAnalysis.findMaximumDistance()).thenReturn(0);
 
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("get", "/graph/maximum-distance");
         Object result = route.handle(mockRequest, mockResponse);
         
@@ -449,11 +464,98 @@ class GraphControllerTest {
             .thenReturn(Collections.emptyList());
 
         controller.setupRoutes();
-        
+
         spark.Route route = getSparkRoute("get", "/graph/high-connectivity-nodes");
         Object result = route.handle(mockRequest, mockResponse);
         
         verify(mockResponse).status(404);
         assertTrue(result.toString().contains("No high connectivity nodes found"));
+    }
+
+    @Test
+    void testAllPaths_InvalidSource() throws Exception {
+        when(mockRequest.queryParams("source")).thenReturn("word1");
+        when(mockRequest.queryParams("target")).thenReturn("word2");
+        when(mockAnalysis.findAllPaths("word1", "word2"))
+            .thenThrow(new GraphWordException("Invalid source node"));
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/all-paths");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Invalid source node"));
+    }
+
+    @Test
+    void testNodesByDegree_NonNumericDegree() throws Exception {
+        when(mockRequest.queryParams("degree")).thenReturn("abc");
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/nodes-by-degree");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Invalid degree parameter"));
+    }
+
+    @Test
+    void testHighConnectivityNodes_NonNumericMinDegree() throws Exception {
+        when(mockRequest.queryParams("minDegree")).thenReturn("abc");
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/high-connectivity-nodes");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Invalid degree parameter"));
+    }
+
+    @Test
+    void testMaximumDistance_GraphException() throws Exception {
+        when(mockAnalysis.findMaximumDistance())
+            .thenThrow(new GraphWordException("Graph is empty"));
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/maximum-distance");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Graph is empty"));
+    }
+
+    @Test
+    void testProcessDirectory_EmptyDirectory() throws Exception {
+        doThrow(new GraphWordException("Directory is empty"))
+            .when(mockProcessor).processDirectory(anyString());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("post", "/graph/process");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Directory is empty"));
+        verify(mockProcessor).processDirectory(anyString());
+    }
+
+    @Test
+    void testShortestPath_GraphException() throws Exception {
+        when(mockRequest.queryParams("source")).thenReturn("word1");
+        when(mockRequest.queryParams("target")).thenReturn("word2");
+        when(mockAnalysis.findShortestPath("word1", "word2"))
+            .thenThrow(new GraphWordException("Graph not initialized"));
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/shortest-path");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Graph not initialized"));
     }
 }
