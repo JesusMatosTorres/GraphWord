@@ -62,53 +62,95 @@ class GraphControllerTest {
         assertTrue(result.toString().contains("Error processing"));
     }
 
-    private spark.Route getSparkRoute(String method, String path) {
+    private spark.Route getSparkRoute(String method, String routePath) {
         return (request, response) -> {
             response.type("application/json");
-            switch (path) {
-                case "/graph/process":
-                    if (method.equals("post")) {
-                        try {
-                            mockProcessor.processDirectory(anyString());
-                            response.status(200);
-                            return "All files processed successfully!";
-                        } catch (GraphWordException e) {
-                            response.status(400);
-                            return gson.toJson(Map.of("error", e.getMessage()));
+            try {
+                switch (routePath) {
+                    case "/graph/process":
+                        if (method.equals("post")) {
+                            try {
+                                mockProcessor.processDirectory(anyString());
+                                response.status(200);
+                                return "All files processed successfully!";
+                            } catch (GraphWordException e) {
+                                response.status(400);
+                                return gson.toJson(Map.of("error", e.getMessage()));
+                            }
                         }
-                    }
-                    break;
-                case "/graph/shortest-path":
-                    if (request.queryParams("source") == null) {
-                        response.status(400);
-                        return gson.toJson(Map.of("error", "Parameter 'source' is required."));
-                    }
-                    return gson.toJson(Arrays.asList("word1", "middle", "word2"));
-                case "/graph/communities":
-                    return gson.toJson(mockAnalysis.findCommunities());
-                case "/graph/isolated-nodes":
-                    return gson.toJson(mockAnalysis.findIsolatedNodes());
-                case "/graph/maximum-distance":
-                    return gson.toJson(Map.of("maximumDistance", mockAnalysis.findMaximumDistance()));
-                case "/graph/high-connectivity-nodes":
-                    int minDegree = request.queryParams("minDegree") != null ? 
-                        Integer.parseInt(request.queryParams("minDegree")) : 6;
-                    return gson.toJson(mockAnalysis.findHighConnectivityNodes(minDegree));
-                case "/graph/nodes-by-degree":
-                    if (request.queryParams("degree") == null) {
-                        response.status(400);
-                        return gson.toJson(Map.of("error", "Parameter 'degree' is required."));
-                    }
-                    return gson.toJson(mockAnalysis.findNodesByDegree(
-                        Integer.parseInt(request.queryParams("degree"))));
-                case "/graph/all-paths":
-                    if (request.queryParams("source") == null || request.queryParams("target") == null) {
-                        response.status(400);
-                        return gson.toJson(Map.of("error", "Parameters 'source' and 'target' are required."));
-                    }
-                    return gson.toJson(mockAnalysis.findAllPaths(
-                        request.queryParams("source"),
-                        request.queryParams("target")));
+                        break;
+                    case "/graph/shortest-path":
+                        if (request.queryParams("source") == null) {
+                            response.status(400);
+                            return gson.toJson(Map.of("error", "Parameter 'source' is required."));
+                        }
+                        List<String> shortestPath = mockAnalysis.findShortestPath(
+                            request.queryParams("source"),
+                            request.queryParams("target"));
+                        if (shortestPath.isEmpty()) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No path found"));
+                        }
+                        return gson.toJson(shortestPath);
+                    case "/graph/communities":
+                        List<List<String>> communities = mockAnalysis.findCommunities();
+                        if (communities.isEmpty()) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No communities found"));
+                        }
+                        return gson.toJson(communities);
+                    case "/graph/isolated-nodes":
+                        List<String> isolatedNodes = mockAnalysis.findIsolatedNodes();
+                        if (isolatedNodes.isEmpty()) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No isolated nodes found"));
+                        }
+                        return gson.toJson(isolatedNodes);
+                    case "/graph/maximum-distance":
+                        int maxDistance = mockAnalysis.findMaximumDistance();
+                        if (maxDistance == 0) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No maximum distance found"));
+                        }
+                        return gson.toJson(Map.of("maximumDistance", maxDistance));
+                    case "/graph/high-connectivity-nodes":
+                        int minDegree = request.queryParams("minDegree") != null ? 
+                            Integer.parseInt(request.queryParams("minDegree")) : 6;
+                        List<String> highConnNodes = mockAnalysis.findHighConnectivityNodes(minDegree);
+                        if (highConnNodes.isEmpty()) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No high connectivity nodes found"));
+                        }
+                        return gson.toJson(highConnNodes);
+                    case "/graph/nodes-by-degree":
+                        if (request.queryParams("degree") == null) {
+                            response.status(400);
+                            return gson.toJson(Map.of("error", "Parameter 'degree' is required."));
+                        }
+                        List<String> nodes = mockAnalysis.findNodesByDegree(
+                            Integer.parseInt(request.queryParams("degree")));
+                        if (nodes.isEmpty()) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No nodes found"));
+                        }
+                        return gson.toJson(nodes);
+                    case "/graph/all-paths":
+                        if (request.queryParams("source") == null || request.queryParams("target") == null) {
+                            response.status(400);
+                            return gson.toJson(Map.of("error", "Parameters 'source' and 'target' are required."));
+                        }
+                        List<List<String>> paths = mockAnalysis.findAllPaths(
+                            request.queryParams("source"),
+                            request.queryParams("target"));
+                        if (paths.isEmpty()) {
+                            response.status(404);
+                            return gson.toJson(Map.of("error", "No paths found"));
+                        }
+                        return gson.toJson(paths);
+                }
+            } catch (NumberFormatException e) {
+                response.status(400);
+                return gson.toJson(Map.of("error", "Invalid degree parameter"));
             }
             return null;
         };
@@ -145,6 +187,22 @@ class GraphControllerTest {
     }
 
     @Test
+    void testShortestPath_PathNotFound() throws Exception {
+        when(mockRequest.queryParams("source")).thenReturn("word1");
+        when(mockRequest.queryParams("target")).thenReturn("word2");
+        when(mockAnalysis.findShortestPath("word1", "word2"))
+            .thenReturn(Collections.emptyList());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/shortest-path");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No path found"));
+    }
+
+    @Test
     void testCommunities_Success() throws Exception {
         List<List<String>> communities = Arrays.asList(
             Arrays.asList("word1", "word2"),
@@ -160,6 +218,20 @@ class GraphControllerTest {
         verify(mockResponse).type("application/json");
         List<List<String>> resultCommunities = gson.fromJson(result.toString(), new TypeToken<List<List<String>>>(){}.getType());
         assertEquals(2, resultCommunities.size());
+    }
+
+    @Test
+    void testCommunities_NoCommunities() throws Exception {
+        when(mockAnalysis.findCommunities())
+            .thenReturn(Collections.emptyList());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/communities");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No communities found"));
     }
 
     @Test
@@ -208,6 +280,19 @@ class GraphControllerTest {
     }
 
     @Test
+    void testHighConnectivityNodes_InvalidDegree() throws Exception {
+        when(mockRequest.queryParams("minDegree")).thenReturn("invalid");
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/high-connectivity-nodes");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Invalid degree parameter"));
+    }
+
+    @Test
     void testNodesByDegree_Success() throws Exception {
         when(mockRequest.queryParams("degree")).thenReturn("3");
         when(mockAnalysis.findNodesByDegree(3))
@@ -234,6 +319,21 @@ class GraphControllerTest {
         
         verify(mockResponse).status(400);
         assertTrue(result.toString().contains("required"));
+    }
+
+    @Test
+    void testNodesByDegree_NoNodesFound() throws Exception {
+        when(mockRequest.queryParams("degree")).thenReturn("5");
+        when(mockAnalysis.findNodesByDegree(5))
+            .thenReturn(Collections.emptyList());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/nodes-by-degree");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No nodes found"));
     }
 
     @Test
@@ -270,6 +370,22 @@ class GraphControllerTest {
     }
 
     @Test
+    void testAllPaths_NoPathsFound() throws Exception {
+        when(mockRequest.queryParams("source")).thenReturn("word1");
+        when(mockRequest.queryParams("target")).thenReturn("word2");
+        when(mockAnalysis.findAllPaths("word1", "word2"))
+            .thenReturn(Collections.emptyList());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/all-paths");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No paths found"));
+    }
+
+    @Test
     void testProcessDirectory_ConfigEmpty() throws Exception {
         doThrow(new GraphWordException("Configuration 'libros.directory' cannot be empty."))
             .when(mockProcessor).processDirectory(anyString());
@@ -297,5 +413,47 @@ class GraphControllerTest {
         verify(mockResponse).type("application/json");
         List<String> nodes = gson.fromJson(result.toString(), new TypeToken<List<String>>(){}.getType());
         assertEquals(2, nodes.size());
+    }
+
+    @Test
+    void testIsolatedNodes_NoNodesFound() throws Exception {
+        when(mockAnalysis.findIsolatedNodes())
+            .thenReturn(Collections.emptyList());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/isolated-nodes");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No isolated nodes found"));
+    }
+
+    @Test
+    void testMaximumDistance_NoDistance() throws Exception {
+        when(mockAnalysis.findMaximumDistance()).thenReturn(0);
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/maximum-distance");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No maximum distance found"));
+    }
+
+    @Test
+    void testHighConnectivityNodes_NoNodesFound() throws Exception {
+        when(mockRequest.queryParams("minDegree")).thenReturn("6");
+        when(mockAnalysis.findHighConnectivityNodes(6))
+            .thenReturn(Collections.emptyList());
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/high-connectivity-nodes");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(404);
+        assertTrue(result.toString().contains("No high connectivity nodes found"));
     }
 }
