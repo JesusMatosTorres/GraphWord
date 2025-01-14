@@ -1,3 +1,5 @@
+package main;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -10,7 +12,6 @@ import api.GraphController;
 import config.AppConfig;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import main.Main;
 
 class MainTest {
     private GraphController mockController;
