@@ -27,6 +27,20 @@ jobs:
       - name: Install dependencies and run tests
         run: mvn clean verify -X
 
+  verify-coverage:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Generate JaCoCo report
         run: mvn jacoco:report
 
@@ -52,9 +66,3 @@ jobs:
           fi
 
           echo "Coverage meets the threshold: $TOTAL_COVERAGE"
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: jacoco-report
-          path: target/site/jacoco/
