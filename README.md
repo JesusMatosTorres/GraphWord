@@ -41,6 +41,6 @@ After installation, you can utilize GraphWord to generate and analyze word graph
 
 ## Authors
 
-- Jesús Matos Torres --> https://github.com/JesusMatosTorres
-- Miriam Méndez Romero --> https://github.com/mmdezr
+- Jesús Matos Torres | https://github.com/JesusMatosTorres
+- Miriam Méndez Romero | https://github.com/mmdezr
 
