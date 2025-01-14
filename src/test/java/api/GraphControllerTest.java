@@ -91,8 +91,9 @@ class GraphControllerTest {
                 case "/graph/maximum-distance":
                     return gson.toJson(Map.of("maximumDistance", mockAnalysis.findMaximumDistance()));
                 case "/graph/high-connectivity-nodes":
-                    return gson.toJson(mockAnalysis.findHighConnectivityNodes(
-                        Integer.parseInt(request.queryParams("minDegree"))));
+                    int minDegree = request.queryParams("minDegree") != null ? 
+                        Integer.parseInt(request.queryParams("minDegree")) : 6;
+                    return gson.toJson(mockAnalysis.findHighConnectivityNodes(minDegree));
                 case "/graph/nodes-by-degree":
                     if (request.queryParams("degree") == null) {
                         response.status(400);
@@ -100,6 +101,14 @@ class GraphControllerTest {
                     }
                     return gson.toJson(mockAnalysis.findNodesByDegree(
                         Integer.parseInt(request.queryParams("degree"))));
+                case "/graph/all-paths":
+                    if (request.queryParams("source") == null || request.queryParams("target") == null) {
+                        response.status(400);
+                        return gson.toJson(Map.of("error", "Parameters 'source' and 'target' are required."));
+                    }
+                    return gson.toJson(mockAnalysis.findAllPaths(
+                        request.queryParams("source"),
+                        request.queryParams("target")));
             }
             return null;
         };
@@ -225,5 +234,68 @@ class GraphControllerTest {
         
         verify(mockResponse).status(400);
         assertTrue(result.toString().contains("required"));
+    }
+
+    @Test
+    void testAllPaths_Success() throws Exception {
+        when(mockRequest.queryParams("source")).thenReturn("word1");
+        when(mockRequest.queryParams("target")).thenReturn("word2");
+        when(mockAnalysis.findAllPaths("word1", "word2"))
+            .thenReturn(Arrays.asList(
+                Arrays.asList("word1", "word2"),
+                Arrays.asList("word1", "word3", "word2")
+            ));
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/all-paths");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).type("application/json");
+        List<List<String>> paths = gson.fromJson(result.toString(), new TypeToken<List<List<String>>>(){}.getType());
+        assertEquals(2, paths.size());
+    }
+
+    @Test
+    void testAllPaths_MissingParams() throws Exception {
+        when(mockRequest.queryParams("source")).thenReturn(null);
+        
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/all-paths");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("required"));
+    }
+
+    @Test
+    void testProcessDirectory_ConfigEmpty() throws Exception {
+        doThrow(new GraphWordException("Configuration 'libros.directory' cannot be empty."))
+            .when(mockProcessor).processDirectory(anyString());
+        
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("post", "/graph/process");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).status(400);
+        assertTrue(result.toString().contains("Configuration"));
+    }
+
+    @Test
+    void testHighConnectivityNodes_DefaultMinDegree() throws Exception {
+        when(mockRequest.queryParams("minDegree")).thenReturn(null);
+        when(mockAnalysis.findHighConnectivityNodes(6))
+            .thenReturn(Arrays.asList("word1", "word2"));
+
+        controller.setupRoutes();
+        
+        spark.Route route = getSparkRoute("get", "/graph/high-connectivity-nodes");
+        Object result = route.handle(mockRequest, mockResponse);
+        
+        verify(mockResponse).type("application/json");
+        List<String> nodes = gson.fromJson(result.toString(), new TypeToken<List<String>>(){}.getType());
+        assertEquals(2, nodes.size());
     }
 }
